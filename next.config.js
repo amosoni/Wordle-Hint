@@ -19,16 +19,6 @@ const nextConfig = {
       },
     ]
   },
-  // 移除重定向，让用户能够正常访问首页
-  // async redirects() {
-  //   return [
-  //     {
-  //       source: '/',
-  //       destination: '/game',
-  //       permanent: false,
-  //     },
-  //   ]
-  // },
 }
 
 module.exports = nextConfig 

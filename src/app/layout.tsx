@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import '@/styles/globals.css'
 import type { Viewport } from 'next'
 
@@ -118,18 +117,17 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         
         {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-8G0ZQYZGZR"
-          strategy="afterInteractive"
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-8G0ZQYZGZR"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-8G0ZQYZGZR');
+            `
+          }}
         />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-8G0ZQYZGZR');
-          `}
-        </Script>
         
         {/* AI-Friendly Structured Data */}
         <script
