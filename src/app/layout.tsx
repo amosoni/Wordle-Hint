@@ -6,33 +6,20 @@ import type { Viewport } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://wordle-hint-pro.com'),
+  metadataBase: new URL('https://wordlehint.help'),
   title: 'Wordle Hint Pro - Smart Progressive Hints | Free Daily Hints',
   description: 'Get smart progressive hints for Wordle puzzles! AI-powered 3-level hint system to solve daily Wordle challenges. Free Wordle help for NYT Wordle.',
   keywords: [
     'Wordle hints',
     'Wordle help',
-    'Wordle solver',
     'daily Wordle',
     'Wordle game',
     'Wordle tips',
     'Wordle strategy',
-    'Wordle hints today',
     'Wordle of the day',
     'NYT Wordle',
-    'Wordle answers',
-    'Wordle clues',
-    'Wordle hints daily',
-    'Wordle hint system',
-    'Wordle puzzle help',
-    'Wordle vocabulary',
-    'Wordle learning',
-    'Wordle practice',
-    'Wordle challenge',
-    'Wordle community',
     'progressive hints',
-    'AI Wordle hints',
-    'smart Wordle help'
+    'Wordle hint system'
   ].join(', '),
   authors: [{ name: 'Wordle Hint Pro Team' }],
   creator: 'Wordle Hint Pro',
@@ -44,7 +31,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'Wordle Hint Pro',
-    url: 'https://wordle-hint-pro.com',
+    url: 'https://wordlehint.help',
     images: [
       {
         url: '/og-image.jpg',
@@ -63,7 +50,7 @@ export const metadata: Metadata = {
     site: '@wordlehintpro',
   },
   alternates: {
-    canonical: 'https://wordle-hint-pro.com',
+    canonical: 'https://wordlehint.help',
   },
   category: 'Games',
   classification: 'Educational Game',
@@ -110,7 +97,7 @@ export default function RootLayout({
         <meta name="msapplication-TileImage" content="/mstile-144x144.png" />
         
         {/* Additional SEO Meta Tags */}
-        <meta name="application-name" content="WordleHint.help" />
+        <meta name="application-name" content="Wordle Hint Pro" />
         <meta name="apple-mobile-web-app-title" content="WordleHint" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -143,7 +130,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "WordleHint.help - Wordle Hints Today | Wordle of the Day",
+              "name": "Wordle Hint Pro - Wordle Hints Today | Wordle of the Day",
               "description": "Get daily Wordle hints today! Free Wordle of the day hints and progressive Wordle help to solve NYT Wordle puzzles. AI-friendly Wordle solver and hint system.",
               "url": "https://wordlehint.help",
               "applicationCategory": "Game",
@@ -155,7 +142,7 @@ export default function RootLayout({
               },
               "author": {
                 "@type": "Organization",
-                "name": "WordleHint.help Team"
+                "name": "Wordle Hint Pro Team"
               },
               "aggregateRating": {
                 "@type": "AggregateRating",

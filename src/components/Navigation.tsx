@@ -21,7 +21,7 @@ export default function Navigation() {
             </div>
             <div>
               <span className="text-xl font-bold text-gray-900">WordleHint</span>
-              <span className="text-sm text-gray-500 block">.help</span>
+              <span className="text-sm text-gray-500">.help</span>
             </div>
           </div>
 

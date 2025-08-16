@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://wordle-hint-pro.com/sitemap.xml
+Sitemap: https://wordlehint.help/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1

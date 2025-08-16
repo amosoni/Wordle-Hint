@@ -202,18 +202,18 @@ export default function HomePage() {
       <Head>
         <title>Wordle Hint Pro - Smart Progressive Hints | Free Daily Hints</title>
         <meta name="description" content="Get smart progressive hints for Wordle puzzles! AI-powered 3-level hint system to solve daily Wordle challenges. Free Wordle help for NYT Wordle." />
-        <meta name="keywords" content="Wordle hints, Wordle help, Wordle solver, daily Wordle, Wordle game, Wordle tips" />
+        <meta name="keywords" content="Wordle hints, Wordle help, daily Wordle, Wordle game, Wordle tips" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="robots" content="index, follow" />
         <meta property="og:title" content="Wordle Hint Pro - Smart Progressive Hints" />
         <meta property="og:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordle-hint-pro.com" />
+        <meta property="og:url" content="https://wordlehint.help" />
         <meta property="og:image" content="/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Wordle Hint Pro - Smart Progressive Hints" />
         <meta name="twitter:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
-        <link rel="canonical" href="https://wordle-hint-pro.com" />
+        <link rel="canonical" href="https://wordlehint.help" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       

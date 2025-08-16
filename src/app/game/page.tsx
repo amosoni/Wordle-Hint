@@ -190,7 +190,7 @@ export default function GamePage() {
       <Head>
         <title>Wordle of the Day - Play Today&apos;s Wordle Game | Wordle Hint Pro</title>
         <meta name="description" content="Play today's Wordle! Enhanced interface with statistics tracking and smart hints. Test your skills and master the daily Wordle puzzle." />
-        <meta name="keywords" content="play Wordle online, Wordle game, Wordle interface, Wordle statistics, Wordle strategy" />
+        <meta name="keywords" content="play Wordle online, Wordle game, Wordle interface, Wordle statistics" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="creator" content="Wordle Hint Pro" />
         <meta name="publisher" content="Wordle Hint Pro" />
@@ -201,7 +201,7 @@ export default function GamePage() {
         <meta property="og:title" content="Wordle of the Day - Play Today's Wordle Game" />
         <meta property="og:description" content="Play today's Wordle! Enhanced interface with statistics tracking and smart hints." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordle-hint-pro.com/game" />
+        <meta property="og:url" content="https://wordlehint.help/game" />
         <meta property="og:image" content="/game-og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -218,7 +218,7 @@ export default function GamePage() {
         <meta name="twitter:site" content="@wordlehintpro" />
         
         {/* Additional SEO */}
-        <link rel="canonical" href="https://wordle-hint-pro.com/game" />
+        <link rel="canonical" href="https://wordlehint.help/game" />
         <meta name="category" content="Games" />
         <meta name="classification" content="Educational Game" />
         <meta name="rating" content="General" />
@@ -231,7 +231,7 @@ export default function GamePage() {
             "@type": "WebApplication",
             "name": "Wordle of the Day - Play Today&apos;s Wordle Game",
             "description": "Play today's Wordle! Enhanced interface with statistics tracking and smart hints",
-            "url": "https://wordle-hint-pro.com/game",
+            "url": "https://wordlehint.help/game",
             "applicationCategory": "Game",
             "operatingSystem": "Web Browser",
             "offers": {

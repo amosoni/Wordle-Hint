@@ -118,7 +118,7 @@ export default function HintsPage() {
       <Head>
         <title>Wordle Hint Today - Daily Wordle Hints | Wordle Hint Pro</title>
         <meta name="description" content="Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed. Master Wordle with smart strategies." />
-        <meta name="keywords" content="Wordle hints today, daily Wordle hints, Wordle help, progressive hints, Wordle strategy, Wordle tips" />
+        <meta name="keywords" content="Wordle hints today, daily Wordle hints, progressive hints, Wordle strategy" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="creator" content="Wordle Hint Pro" />
         <meta name="publisher" content="Wordle Hint Pro" />
@@ -129,7 +129,7 @@ export default function HintsPage() {
         <meta property="og:title" content="Wordle Hint Today - Daily Wordle Hints" />
         <meta property="og:description" content="Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordle-hint-pro.com/hints" />
+        <meta property="og:url" content="https://wordlehint.help/hints" />
         <meta property="og:image" content="/hints-og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -146,7 +146,7 @@ export default function HintsPage() {
         <meta name="twitter:site" content="@wordlehintpro" />
         
         {/* Additional SEO */}
-        <link rel="canonical" href="https://wordle-hint-pro.com/hints" />
+        <link rel="canonical" href="https://wordlehint.help/hints" />
         <meta name="category" content="Games" />
         <meta name="classification" content="Educational Game" />
         <meta name="rating" content="General" />
@@ -159,7 +159,7 @@ export default function HintsPage() {
             "@type": "WebApplication",
             "name": "Wordle Hint Today - Daily Wordle Hints",
             "description": "Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed.",
-            "url": "https://wordle-hint-pro.com/hints",
+            "url": "https://wordlehint.help/hints",
             "applicationCategory": "Game",
             "operatingSystem": "Web Browser",
             "offers": {

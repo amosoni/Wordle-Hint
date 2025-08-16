@@ -99,18 +99,18 @@ export default function OnlinePage() {
       <Head>
         <title>Wordle Hints - Online Wordle Hint System | Wordle Hint Pro</title>
         <meta name="description" content="Get Wordle hints online! Progressive hint system with real-time updates. Access today's Wordle hints from anywhere with cross-device compatibility." />
-        <meta name="keywords" content="online Wordle hints, Wordle hint system, cross-device Wordle, real-time hints" />
+        <meta name="keywords" content="online Wordle hints, cross-device Wordle, real-time hints" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="robots" content="index, follow" />
         <meta property="og:title" content="Wordle Hints - Online Wordle Hint System" />
         <meta property="og:description" content="Access Wordle hints online from anywhere! Progressive hint system with cross-device compatibility." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordle-hint-pro.com/online" />
+        <meta property="og:url" content="https://wordlehint.help/online" />
         <meta property="og:image" content="/online-og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Wordle Hints - Online Wordle Hint System" />
         <meta name="twitter:description" content="Access Wordle hints online from anywhere! Progressive hint system with cross-device compatibility." />
-        <link rel="canonical" href="https://wordle-hint-pro.com/online" />
+        <link rel="canonical" href="https://wordlehint.help/online" />
       </Head>
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">

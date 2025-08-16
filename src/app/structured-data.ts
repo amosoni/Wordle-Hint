@@ -1,5 +1,5 @@
 export const generateStructuredData = (page: string) => {
-  const baseUrl = 'https://wordle-hint-pro.com'
+  const baseUrl = 'https://wordlehint.help'
   
   const baseData = {
     "@context": "https://schema.org",
