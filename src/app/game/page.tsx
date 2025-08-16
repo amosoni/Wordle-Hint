@@ -189,8 +189,8 @@ export default function GamePage() {
     <>
       <Head>
         <title>Wordle of the Day - Play Today&apos;s Wordle Game | Wordle Hint Pro</title>
-        <meta name="description" content="Play today&apos;s Wordle! Wordle of the day with enhanced interface, statistics tracking, and smart hints. Test your skills and master the daily Wordle puzzle!" />
-        <meta name="keywords" content="wordle of the day, wordle hint today, wordle hints, play Wordle online, Wordle game, Wordle online, Wordle web game, Wordle interface, Wordle statistics, Wordle strategy, Wordle practice, Wordle challenge, Wordle solver, Wordle help, Wordle tips, Wordle daily, Wordle puzzle, Wordle brain game, Wordle word game, Wordle vocabulary, Wordle learning, Wordle skills, today&apos;s Wordle, Wordle today, Wordle daily" />
+        <meta name="description" content="Play today's Wordle! Enhanced interface with statistics tracking and smart hints. Test your skills and master the daily Wordle puzzle." />
+        <meta name="keywords" content="play Wordle online, Wordle game, Wordle interface, Wordle statistics, Wordle strategy" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="creator" content="Wordle Hint Pro" />
         <meta name="publisher" content="Wordle Hint Pro" />
@@ -198,8 +198,8 @@ export default function GamePage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="Wordle of the Day - Play Today&apos;s Wordle Game" />
-        <meta property="og:description" content="Play today&apos;s Wordle! Wordle of the day with enhanced interface, statistics tracking, and smart hints." />
+        <meta property="og:title" content="Wordle of the Day - Play Today's Wordle Game" />
+        <meta property="og:description" content="Play today's Wordle! Enhanced interface with statistics tracking and smart hints." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://wordle-hint-pro.com/game" />
         <meta property="og:image" content="/game-og-image.jpg" />
@@ -211,8 +211,8 @@ export default function GamePage() {
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Wordle of the Day - Play Today&apos;s Wordle Game" />
-        <meta name="twitter:description" content="Play today&apos;s Wordle! Wordle of the day with enhanced interface, statistics tracking, and smart hints." />
+        <meta name="twitter:title" content="Wordle of the Day - Play Today's Wordle Game" />
+        <meta name="twitter:description" content="Play today's Wordle! Enhanced interface with statistics tracking and smart hints." />
         <meta name="twitter:image" content="/game-og-image.jpg" />
         <meta name="twitter:creator" content="@wordlehintpro" />
         <meta name="twitter:site" content="@wordlehintpro" />
@@ -230,7 +230,7 @@ export default function GamePage() {
             "@context": "https://schema.org",
             "@type": "WebApplication",
             "name": "Wordle of the Day - Play Today&apos;s Wordle Game",
-            "description": "Play today&apos;s Wordle! Wordle of the day with enhanced interface, statistics tracking, and smart hints",
+            "description": "Play today's Wordle! Enhanced interface with statistics tracking and smart hints",
             "url": "https://wordle-hint-pro.com/game",
             "applicationCategory": "Game",
             "operatingSystem": "Web Browser",

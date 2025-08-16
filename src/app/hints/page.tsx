@@ -116,9 +116,9 @@ export default function HintsPage() {
   return (
     <>
       <Head>
-        <title>Wordle Hint Today - Wordle of the Day Hints | Wordle Hint Pro</title>
-        <meta name="description" content="Get today's Wordle hints! Wordle of the day with progressive help system. Wordle hint today for the daily puzzle. Start gentle, get specific when needed, and master Wordle with smart strategies!" />
-        <meta name="keywords" content="wordle of the day, wordle hint today, wordle hints, daily Wordle hints, Wordle help, progressive hints, Wordle strategy, Wordle tips, Wordle solver, Wordle puzzle help, Wordle learning, Wordle practice, Wordle challenge, Wordle vocabulary, Wordle brain game, Wordle word game, Wordle daily hints, Wordle assistance, Wordle guidance, Wordle clues, Wordle answers, Wordle solutions, Wordle techniques, Wordle methods, Wordle approach, Wordle skills, Wordle improvement, today's Wordle, Wordle today, Wordle daily, Wordle hint system" />
+        <title>Wordle Hint Today - Daily Wordle Hints | Wordle Hint Pro</title>
+        <meta name="description" content="Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed. Master Wordle with smart strategies." />
+        <meta name="keywords" content="Wordle hints today, daily Wordle hints, Wordle help, progressive hints, Wordle strategy, Wordle tips" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="creator" content="Wordle Hint Pro" />
         <meta name="publisher" content="Wordle Hint Pro" />
@@ -126,8 +126,8 @@ export default function HintsPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="Wordle Hint Today - Wordle of the Day Hints" />
-        <meta property="og:description" content="Get today's Wordle hints! Wordle of the day with progressive help system. Wordle hint today for the daily puzzle." />
+        <meta property="og:title" content="Wordle Hint Today - Daily Wordle Hints" />
+        <meta property="og:description" content="Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://wordle-hint-pro.com/hints" />
         <meta property="og:image" content="/hints-og-image.jpg" />
@@ -139,8 +139,8 @@ export default function HintsPage() {
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Wordle Hint Today - Wordle of the Day Hints" />
-        <meta name="twitter:description" content="Get today's Wordle hints! Wordle of the day with progressive help system. Wordle hint today for the daily puzzle." />
+        <meta name="twitter:title" content="Wordle Hint Today - Daily Wordle Hints" />
+        <meta name="twitter:description" content="Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed." />
         <meta name="twitter:image" content="/hints-og-image.jpg" />
         <meta name="twitter:creator" content="@wordlehintpro" />
         <meta name="twitter:site" content="@wordlehintpro" />
@@ -157,8 +157,8 @@ export default function HintsPage() {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebApplication",
-            "name": "Wordle Hint Today - Wordle of the Day Hints",
-            "description": "Get today's Wordle hints! Wordle of the day with progressive help system. Wordle hint today for the daily puzzle.",
+            "name": "Wordle Hint Today - Daily Wordle Hints",
+            "description": "Get today's Wordle hints! Progressive help system with 3 levels. Start gentle, get specific when needed.",
             "url": "https://wordle-hint-pro.com/hints",
             "applicationCategory": "Game",
             "operatingSystem": "Web Browser",

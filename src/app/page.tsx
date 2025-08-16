@@ -200,9 +200,9 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Wordle Hint Pro - Smart Progressive Hints for Wordle | Free Daily Hints</title>
-        <meta name="description" content="Get smart progressive hints for Wordle puzzles. Our AI-powered hint system provides 3 levels of assistance to help you solve daily Wordle challenges while improving your skills." />
-        <meta name="keywords" content="wordle of the day, wordle hint today, wordle hints, Wordle help, Wordle solver, daily Wordle, Wordle game, Wordle tips, Wordle strategy, today's Wordle, Wordle today, Wordle daily, Wordle hint system" />
+        <title>Wordle Hint Pro - Smart Progressive Hints | Free Daily Hints</title>
+        <meta name="description" content="Get smart progressive hints for Wordle puzzles! AI-powered 3-level hint system to solve daily Wordle challenges. Free Wordle help for NYT Wordle." />
+        <meta name="keywords" content="Wordle hints, Wordle help, Wordle solver, daily Wordle, Wordle game, Wordle tips" />
         <meta name="author" content="Wordle Hint Pro" />
         <meta name="robots" content="index, follow" />
         <meta property="og:title" content="Wordle Hint Pro - Smart Progressive Hints" />

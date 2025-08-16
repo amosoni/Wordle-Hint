@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://wordle-hint-pro.com'),
-  title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle | Free Daily Hints',
-  description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance to help you solve daily Wordle challenges while improving your skills. Free Wordle help for NYT Wordle puzzles.',
+  title: 'Wordle Hint Pro - Smart Progressive Hints | Free Daily Hints',
+  description: 'Get smart progressive hints for Wordle puzzles! AI-powered 3-level hint system to solve daily Wordle challenges. Free Wordle help for NYT Wordle.',
   keywords: [
     'Wordle hints',
     'Wordle help',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   publisher: 'Wordle Hint Pro',
   robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
   openGraph: {
-    title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle',
+    title: 'Wordle Hint Pro - Smart Progressive Hints',
     description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance.',
     type: 'website',
     locale: 'en_US',
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle',
+    title: 'Wordle Hint Pro - Smart Progressive Hints',
     description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance.',
     images: ['/og-image.jpg'],
     creator: '@wordlehintpro',
