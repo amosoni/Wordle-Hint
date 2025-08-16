@@ -2,17 +2,12 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://wordlehint.help/sitemap.xml
+Sitemap: https://wordle-hint-pro.com/sitemap.xml
 
-# Wordle hints today
-Allow: /hints
-Allow: /online
-Allow: /game
+# Crawl-delay
+Crawl-delay: 1
 
-# Disallow admin areas
+# Disallow admin and private areas
 Disallow: /api/
 Disallow: /_next/
-Disallow: /admin/
-
-# Crawl delay
-Crawl-delay: 1 
+Disallow: /admin/ 

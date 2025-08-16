@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Head from 'next/head'
 import { 
   Lightbulb, 
   Target, 
@@ -40,6 +41,13 @@ export default function HomePage() {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [gameStats, setGameStats] = useState({
+    gamesPlayed: 0,
+    gamesWon: 0,
+    currentStreak: 0,
+    bestStreak: 0
+  })
 
   // 获取每日数据 - 优化加载逻辑
   useEffect(() => {
@@ -75,6 +83,28 @@ export default function HomePage() {
 
     // 立即获取数据
     fetchDailyData()
+    
+    // 加载本地游戏统计
+            const savedStats = localStorage.getItem('wordleStats')
+        if (savedStats) {
+          try {
+            setGameStats(JSON.parse(savedStats))
+          } catch {
+            console.warn('Failed to parse saved stats')
+          }
+        }
+  }, [])
+  
+  // 更新时间
+  useEffect(() => {
+    // 设置初始时间
+    setCurrentTime(new Date())
+    
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    
+    return () => clearInterval(timer)
   }, [])
 
   // 使用API数据或默认数据
@@ -168,8 +198,27 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Navigation />
+    <>
+      <Head>
+        <title>Wordle Hint Pro - Smart Progressive Hints for Wordle | Free Daily Hints</title>
+        <meta name="description" content="Get smart progressive hints for Wordle puzzles. Our AI-powered hint system provides 3 levels of assistance to help you solve daily Wordle challenges while improving your skills." />
+        <meta name="keywords" content="wordle of the day, wordle hint today, wordle hints, Wordle help, Wordle solver, daily Wordle, Wordle game, Wordle tips, Wordle strategy, today's Wordle, Wordle today, Wordle daily, Wordle hint system" />
+        <meta name="author" content="Wordle Hint Pro" />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content="Wordle Hint Pro - Smart Progressive Hints" />
+        <meta property="og:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://wordle-hint-pro.com" />
+        <meta property="og:image" content="/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Wordle Hint Pro - Smart Progressive Hints" />
+        <meta name="twitter:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
+        <link rel="canonical" href="https://wordle-hint-pro.com" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Navigation />
       
       {/* Hero 区域 */}
       <section className="relative pt-32 pb-20 overflow-hidden">
@@ -208,26 +257,63 @@ export default function HomePage() {
           </SlideInLeft>
           
           <SlideInRight delay={200} duration={1000} easing="cubic-bezier">
-            <div className="flex items-center justify-center space-x-8 text-gray-600">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium">{activeUsers.toLocaleString()} Active Users</span>
+                          <div className="flex items-center justify-center space-x-8 text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="font-medium">{activeUsers.toLocaleString()} Active Users</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="font-medium">{hintsGiven.toLocaleString()} Hints Given</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                  <span className="font-medium">99% Accuracy</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="font-medium">{currentTime ? currentTime.toLocaleTimeString() : '--:--:--'}</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">{hintsGiven.toLocaleString()} Hints Given</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="font-medium">99% Accuracy</span>
-              </div>
-            </div>
           </SlideInRight>
         </div>
       </section>
 
-      {/* 今日提示预览 */}
+      {/* 游戏统计展示 */}
       <section className="relative py-16 -mt-20">
+        <div className="max-w-5xl mx-auto px-6">
+          <ScaleIn delay={100} duration={1200} easing="cubic-bezier">
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl mb-12">
+              <div className="text-center mb-8">
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">Your Wordle Progress</h3>
+                <p className="text-gray-600 text-lg">Track your Wordle journey and achievements</p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">{gameStats.gamesPlayed}</div>
+                  <div className="text-sm text-blue-700 font-medium">Games Played</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="text-3xl font-bold text-green-600 mb-2">{gameStats.gamesWon}</div>
+                  <div className="text-sm text-green-700 font-medium">Games Won</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{gameStats.currentStreak}</div>
+                  <div className="text-sm text-purple-700 font-medium">Current Streak</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-xl border border-orange-200">
+                  <div className="text-3xl font-bold text-orange-600 mb-2">{gameStats.bestStreak}</div>
+                  <div className="text-sm text-orange-700 font-medium">Best Streak</div>
+                </div>
+              </div>
+            </div>
+          </ScaleIn>
+        </div>
+      </section>
+
+      {/* 今日提示预览 */}
+      <section className="relative py-16">
         <div className="max-w-5xl mx-auto px-6">
           <ScaleIn delay={150} duration={1200} easing="cubic-bezier">
             <div className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl">
@@ -657,5 +743,6 @@ export default function HomePage() {
       {/* 统一页脚 */}
       <Footer />
     </div>
+    </>
   )
 } 

@@ -6,20 +6,20 @@ import type { Viewport } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://wordlehint.help'),
-  title: 'WordleHint.help - Wordle Hints Today | Wordle of the Day | Free Wordle Help',
-  description: 'Get daily Wordle hints today! WordleHint.help provides free Wordle of the day hints, Wordle hints today, and progressive Wordle help to solve NYT Wordle puzzles. Improve your Wordle solving skills with our intelligent hint system.',
+  metadataBase: new URL('https://wordle-hint-pro.com'),
+  title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle | Free Daily Hints',
+  description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance to help you solve daily Wordle challenges while improving your skills. Free Wordle help for NYT Wordle puzzles.',
   keywords: [
-    'Wordle',
     'Wordle hints',
-    'Wordle hints today',
-    'Wordle of the day',
     'Wordle help',
     'Wordle solver',
-    'NYT Wordle',
+    'daily Wordle',
     'Wordle game',
     'Wordle tips',
-    'Wordle strategies',
+    'Wordle strategy',
+    'Wordle hints today',
+    'Wordle of the day',
+    'NYT Wordle',
     'Wordle answers',
     'Wordle clues',
     'Wordle hints daily',
@@ -29,18 +29,22 @@ export const metadata: Metadata = {
     'Wordle learning',
     'Wordle practice',
     'Wordle challenge',
-    'Wordle community'
+    'Wordle community',
+    'progressive hints',
+    'AI Wordle hints',
+    'smart Wordle help'
   ].join(', '),
-  authors: [{ name: 'WordleHint.help Team' }],
-  creator: 'WordleHint.help',
-  publisher: 'WordleHint.help',
+  authors: [{ name: 'Wordle Hint Pro Team' }],
+  creator: 'Wordle Hint Pro',
+  publisher: 'Wordle Hint Pro',
   robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
   openGraph: {
-    title: 'WordleHint.help - Wordle Hints Today | Wordle of the Day',
-    description: 'Get daily Wordle hints today! Free Wordle of the day hints and progressive Wordle help to solve NYT Wordle puzzles.',
+    title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle',
+    description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance.',
     type: 'website',
     locale: 'en_US',
-    siteName: 'WordleHint.help',
+    siteName: 'Wordle Hint Pro',
+    url: 'https://wordle-hint-pro.com',
     images: [
       {
         url: '/og-image.jpg',
@@ -52,19 +56,22 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'WordleHint.help - Wordle Hints Today | Wordle of the Day',
-    description: 'Get daily Wordle hints today! Free Wordle of the day hints and progressive Wordle help to solve NYT Wordle puzzles.',
+    title: 'Wordle Hint Pro - Smart Progressive Hints for Wordle',
+    description: 'Get smart progressive hints for Wordle puzzles! Our AI-powered hint system provides 3 levels of assistance.',
     images: ['/og-image.jpg'],
+    creator: '@wordlehintpro',
+    site: '@wordlehintpro',
   },
-
   alternates: {
-    canonical: 'https://wordlehint.help',
+    canonical: 'https://wordle-hint-pro.com',
   },
   category: 'Games',
   classification: 'Educational Game',
   other: {
     'baidu-site-verification': 'your-verification-code',
     'google-site-verification': 'your-verification-code',
+    'msvalidate.01': 'your-verification-code',
+    'yandex-verification': 'your-verification-code',
   },
 }
 
