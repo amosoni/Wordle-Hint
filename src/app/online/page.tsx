@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { Lightbulb, Target, CheckCircle, Globe, Users, Clock, TrendingUp, Award, Wifi, Smartphone, Monitor, Tablet, Gamepad2, ArrowRight } from 'lucide-react'
+import { Lightbulb, Target, CheckCircle, Globe, Users, Clock, TrendingUp, Award, Wifi, Smartphone, Monitor, Tablet, Gamepad2, ArrowRight, X, Info, BookOpenCheck, GraduationCap, BookOpen, Zap } from 'lucide-react'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 
@@ -12,16 +12,57 @@ interface HintData {
   description: string
   badge: string
   color: string
+  example?: string
+  tip?: string
+}
+
+interface EducationalContent {
+  wordOrigin: string
+  funFact: string
+  usageExamples: string[]
+  pronunciation: string
+  learningChallenges?: {
+    challenge: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    type: string; // e.g., 'word_formation', 'letter_placement'
+    examples: string[];
+  }[];
+  dailyQuestions?: {
+    question: string;
+    answer: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    category: string; // e.g., 'grammar', 'vocabulary'
+  }[];
+  wordAnalysis?: {
+    letterCount: number;
+    vowelCount: number;
+    consonantCount: number;
+    syllableEstimate: number;
+    letterPattern: string;
+    commonness: string;
+    uniqueLetters: string;
+  };
+}
+
+interface DailyData {
+  word?: string
+  hints?: HintData[]
+  educationalContent?: EducationalContent
+  learningTips?: string[]
+  relatedWords?: {
+    synonyms: string[]
+    antonyms: string[]
+    similar: string[]
+  }
 }
 
 export default function OnlinePage() {
-  const [dailyData, setDailyData] = useState<{
-    word?: string;
-    hints?: HintData[];
-  } | null>(null)
+  const [dailyData, setDailyData] = useState<DailyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedHintLevel, setSelectedHintLevel] = useState<number | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedCardLevel, setSelectedCardLevel] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchDailyData = async () => {
@@ -48,17 +89,49 @@ export default function OnlinePage() {
   }, [])
 
   const todayHints = dailyData?.hints || [
-    { level: 1, title: "Vague Hint", description: "A gentle nudge in the right direction", badge: "Level 1", color: "blue" },
-    { level: 2, title: "Specific Hint", description: "More targeted guidance for your strategy", badge: "Level 2", color: "purple" },
-    { level: 3, title: "Direct Hint", description: "Clear direction when you're really stuck", badge: "Level 3", color: "green" }
+    { level: 1, title: "Gentle Nudge", description: "A subtle hint that gives you a general direction without spoiling the puzzle", badge: "Level 1", color: "blue", example: "This word contains 2 vowels and 3 consonants", tip: "Focus on the vowel-consonant pattern to narrow down possibilities" },
+    { level: 2, title: "Letter Frequency", description: "Information about how often certain letters appear in this word", badge: "Level 2", color: "cyan", example: "Most common letter: 'A' appears 1 time", tip: "Common letters like E, A, R, T appear frequently in English words" },
+    { level: 3, title: "Strategic Guide", description: "More specific guidance that helps you form a strategy", badge: "Level 3", color: "purple", example: "Starts with 'A', ends with 'T', and contains letter 'O' in the middle", tip: "Use the first and last letters as anchors, then work on the middle" },
+    { level: 4, title: "Pattern Recognition", description: "Common letter combinations and patterns in this word", badge: "Level 4", color: "orange", example: "Contains pattern: No common patterns detected", tip: "Look for common letter combinations like 'TH', 'CH', 'SH', 'ING'" },
+    { level: 5, title: "Word Characteristics", description: "Specific details about the word's structure and meaning", badge: "Level 5", color: "red", example: "This is a 5-letter word with a balanced vowel-consonant structure", tip: "Try starting with common letters and work your way through systematically" },
+    { level: 6, title: "Direct Clue", description: "Clear direction when you're really stuck - use sparingly", badge: "Level 6", color: "green", example: "Letter positions: A(1), B(2), O(3), U(4), T(5)", tip: "This is the final hint - use it only when completely stuck!" }
   ]
 
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'blue': return 'from-blue-500 to-blue-600'
+      case 'cyan': return 'from-cyan-500 to-cyan-600'
       case 'purple': return 'from-purple-500 to-purple-600'
+      case 'orange': return 'from-orange-500 to-orange-600'
+      case 'red': return 'from-red-500 to-red-600'
       case 'green': return 'from-green-500 to-green-600'
       default: return 'from-gray-500 to-gray-600'
+    }
+  }
+
+  const handleCardClick = (level: number) => {
+    setSelectedCardLevel(level)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedCardLevel(null)
+  }
+
+  const getSelectedHint = () => {
+    return todayHints.find(hint => hint.level === selectedCardLevel)
+  }
+
+  const getColorEmoji = (color: string) => {
+    switch (color) {
+      case 'blue': return '🔵'
+      case 'cyan': return '🔷'
+      case 'purple': return '🟣'
+      case 'orange': return '🟠'
+      case 'red': return '🔴'
+      case 'green': return '🟢'
+      default: return '⚪'
     }
   }
 
@@ -133,7 +206,8 @@ export default function OnlinePage() {
             {todayHints.map((hint) => (
               <div
                 key={hint.level}
-                className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2"
+                className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+                onClick={() => handleCardClick(hint.level)}
               >
                 <div className={`inline-block p-4 bg-gradient-to-r ${getColorClasses(hint.color)} rounded-xl text-white mb-6`}>
                   <span className="text-sm font-medium">{hint.badge}</span>
@@ -627,6 +701,265 @@ export default function OnlinePage() {
           </div>
         </div>
       </main>
+
+             {/* Hint Detail Modal */}
+       {showModal && selectedCardLevel && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+             {/* Modal Header */}
+             <div className="flex items-center justify-between p-6 border-b border-gray-200">
+               <div className="flex items-center space-x-3">
+                 <div className={`w-12 h-12 bg-gradient-to-r ${getColorClasses(getSelectedHint()?.color || 'gray')} rounded-xl flex items-center justify-center text-white`}>
+                   <span className="text-lg font-bold">{getColorEmoji(getSelectedHint()?.color || 'gray')}</span>
+                 </div>
+                 <div>
+                   <h2 className="text-2xl font-bold text-gray-900">
+                     {getSelectedHint()?.title}
+                   </h2>
+                   <p className="text-gray-600">{getSelectedHint()?.badge}</p>
+                 </div>
+               </div>
+               <button
+                 onClick={closeModal}
+                 className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+               >
+                 <X className="w-5 h-5 text-gray-600" />
+               </button>
+             </div>
+
+             {/* Modal Content */}
+             <div className="p-6 space-y-6">
+               {/* Hint Description */}
+               <div className="bg-gray-50 rounded-xl p-4">
+                 <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                   <Info className="w-5 h-5 text-blue-600 mr-2" />
+                   Description
+                 </h3>
+                 <p className="text-gray-700">{getSelectedHint()?.description}</p>
+               </div>
+
+               {/* Hint Example */}
+               {getSelectedHint()?.example && (
+                 <div className="bg-blue-50 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                     <BookOpenCheck className="w-5 h-5 text-blue-600 mr-2" />
+                     Example
+                   </h3>
+                   <p className="text-gray-700 font-medium">&ldquo;{getSelectedHint()?.example}&rdquo;</p>
+                 </div>
+               )}
+
+               {/* Learning Tip */}
+               {getSelectedHint()?.tip && (
+                 <div className="bg-green-50 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                     <GraduationCap className="w-5 h-5 text-green-600 mr-2" />
+                     Learning Tip
+                   </h3>
+                   <p className="text-gray-700">{getSelectedHint()?.tip}</p>
+                 </div>
+               )}
+
+               {/* Educational Content */}
+               {dailyData?.educationalContent && (
+                 <div className="bg-purple-50 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                     <BookOpen className="w-5 h-5 text-purple-600 mr-2" />
+                     Word Learning
+                   </h3>
+                   <div className="space-y-3">
+                     <div>
+                       <span className="font-medium text-gray-700">Origin: </span>
+                       <span className="text-gray-600">{dailyData.educationalContent.wordOrigin}</span>
+                     </div>
+                     <div>
+                       <span className="font-medium text-gray-700">Fun Fact: </span>
+                       <span className="text-gray-600">{dailyData.educationalContent.funFact}</span>
+                     </div>
+                     <div>
+                       <span className="font-medium text-gray-700">Pronunciation: </span>
+                       <span className="text-gray-600 font-mono">{dailyData.educationalContent.pronunciation}</span>
+                     </div>
+                     <div>
+                       <span className="font-medium text-gray-700">Usage Examples: </span>
+                       <ul className="list-disc list-inside text-gray-600 mt-1">
+                         {dailyData.educationalContent.usageExamples.map((example, index) => (
+                           <li key={index} className="text-sm">&ldquo;{example}&rdquo;</li>
+                         ))}
+                       </ul>
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               {/* Learning Tips */}
+               {dailyData?.learningTips && (
+                 <div className="bg-orange-50 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                     <Zap className="w-5 h-5 text-orange-600 mr-2" />
+                     General Learning Tips
+                   </h3>
+                   <ul className="space-y-2">
+                     {dailyData.learningTips.map((tip, index) => (
+                       <li key={index} className="flex items-start space-x-2">
+                         <span className="text-orange-500 mt-1">•</span>
+                         <span className="text-gray-700 text-sm">{tip}</span>
+                       </li>
+                     ))}
+                   </ul>
+                 </div>
+               )}
+
+               {/* Related Words */}
+               {dailyData?.relatedWords && dailyData.relatedWords.similar.length > 0 && (
+                 <div className="bg-indigo-50 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                     <Target className="w-5 h-5 text-indigo-600 mr-2" />
+                     Related Words
+                   </h3>
+                   <div className="flex flex-wrap gap-2">
+                     {dailyData.relatedWords.similar.map((word, index) => (
+                       <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                         {word}
+                       </span>
+                     ))}
+                   </div>
+                 </div>
+               )}
+             </div>
+
+             {/* Modal Footer */}
+             <div className="flex items-center justify-between p-6 border-t border-gray-200">
+               <div className="text-sm text-gray-500">
+                 Use this hint wisely to improve your Wordle skills!
+               </div>
+               <button
+                 onClick={closeModal}
+                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+               >
+                 Got it!
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+
+      {/* Learning Challenges Section */}
+      {dailyData?.educationalContent?.learningChallenges && (
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-3xl p-8 border border-yellow-200 shadow-2xl mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Learning Challenges</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dailyData.educationalContent.learningChallenges.map((challenge, index) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    challenge.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                    challenge.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {challenge.difficulty.toUpperCase()}
+                  </span>
+                  <span className="text-sm text-gray-500 capitalize">{challenge.type.replace('_', ' ')}</span>
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{challenge.challenge}</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 font-medium mb-2">Examples:</p>
+                  <ul className="text-gray-700 text-sm">
+                    {challenge.examples.map((example, idx) => (
+                      <li key={idx} className="mb-1">• {example}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Daily Questions Section - SEO Friendly */}
+      {dailyData?.educationalContent?.dailyQuestions && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-3xl p-8 border border-green-200 shadow-2xl mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Daily Learning Questions</h2>
+            <p className="text-lg text-gray-600">Test your knowledge about today&apos;s word with these interactive questions!</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {dailyData.educationalContent.dailyQuestions.map((q, index) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    q.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                    q.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {q.difficulty.toUpperCase()}
+                  </span>
+                  <span className="text-sm text-gray-500 capitalize">{q.category}</span>
+                </div>
+                
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{q.question}</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-600 font-medium mb-2">Answer:</p>
+                  <p className="text-gray-700">{q.answer}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Word Analysis Section */}
+      {dailyData?.educationalContent?.wordAnalysis && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-200 shadow-2xl mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Word Analysis</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-purple-600">{dailyData.educationalContent.wordAnalysis.letterCount}</span>
+              </div>
+              <p className="text-sm text-gray-600">Letters</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-blue-600">{dailyData.educationalContent.wordAnalysis.vowelCount}</span>
+              </div>
+              <p className="text-sm text-gray-600">Vowels</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-green-600">{dailyData.educationalContent.wordAnalysis.consonantCount}</span>
+              </div>
+              <p className="text-sm text-gray-600">Consonants</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-orange-600">{dailyData.educationalContent.wordAnalysis.syllableEstimate}</span>
+              </div>
+              <p className="text-sm text-gray-600">Syllables</p>
+            </div>
+          </div>
+          
+          <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Detailed Analysis</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Letter Pattern:</p>
+                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.letterPattern}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Commonness:</p>
+                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.commonness}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Unique Letters:</p>
+                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.uniqueLetters}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

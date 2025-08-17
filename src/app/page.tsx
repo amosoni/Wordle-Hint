@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Head from 'next/head'
+// Head component removed for App Router compatibility
 import { 
   Lightbulb, 
   Target, 
@@ -48,6 +48,7 @@ export default function HomePage() {
     currentStreak: 0,
     bestStreak: 0
   })
+  const [isClient, setIsClient] = useState(false)
 
   // 获取每日数据 - 优化加载逻辑
   useEffect(() => {
@@ -83,17 +84,26 @@ export default function HomePage() {
 
     // 立即获取数据
     fetchDailyData()
-    
-    // 加载本地游戏统计
-            const savedStats = localStorage.getItem('wordleStats')
-        if (savedStats) {
-          try {
-            setGameStats(JSON.parse(savedStats))
-          } catch {
-            console.warn('Failed to parse saved stats')
-          }
-        }
   }, [])
+  
+  // 设置客户端状态 - 避免水合错误
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  // 加载本地游戏统计 - 分离到单独的useEffect
+  useEffect(() => {
+    if (!isClient) return // 只在客户端执行
+    
+    try {
+      const savedStats = localStorage.getItem('wordleStats')
+      if (savedStats) {
+        setGameStats(JSON.parse(savedStats))
+      }
+    } catch (error) {
+      console.warn('Failed to parse saved stats:', error)
+    }
+  }, [isClient])
   
   // 更新时间
   useEffect(() => {
@@ -199,23 +209,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Head>
-        <title>Wordle Hint Pro - Smart Progressive Hints | Free Daily Hints</title>
-        <meta name="description" content="Get smart progressive hints for Wordle puzzles! AI-powered 3-level hint system to solve daily Wordle challenges. Free Wordle help for NYT Wordle." />
-        <meta name="keywords" content="Wordle hints, Wordle help, daily Wordle, Wordle game, Wordle tips" />
-        <meta name="author" content="Wordle Hint Pro" />
-        <meta name="robots" content="index, follow" />
-        <meta property="og:title" content="Wordle Hint Pro - Smart Progressive Hints" />
-        <meta property="og:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordlehint.help" />
-        <meta property="og:image" content="/og-image.jpg" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Wordle Hint Pro - Smart Progressive Hints" />
-        <meta name="twitter:description" content="Get smart progressive hints for Wordle puzzles. Improve your Wordle skills with our AI-powered hint system." />
-        <link rel="canonical" href="https://wordlehint.help" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
+      {/* SEO meta tags removed for App Router compatibility */}
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <Navigation />
@@ -253,6 +247,14 @@ export default function HomePage() {
                 Learn More
                 <ArrowRight className="w-5 h-5 ml-2" />
               </button>
+            </div>
+            <div className="mt-6">
+              <a 
+                href="/blog" 
+                className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+              >
+                📚 Read Educational Articles
+              </a>
             </div>
           </SlideInLeft>
           

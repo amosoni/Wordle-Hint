@@ -15,7 +15,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <a href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
               <Lightbulb className="w-6 h-6 text-white" />
             </div>
@@ -23,7 +23,7 @@ export default function Navigation() {
               <span className="text-xl font-bold text-gray-900">WordleHint</span>
               <span className="text-sm text-gray-500">.help</span>
             </div>
-          </div>
+          </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -38,6 +38,9 @@ export default function Navigation() {
             </a>
             <a href="/online" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Online
+            </a>
+            <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+              Blog
             </a>
           </div>
 
@@ -77,6 +80,9 @@ export default function Navigation() {
               </a>
               <a href="/online" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Online
+              </a>
+              <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+                Blog
               </a>
             </div>
             
