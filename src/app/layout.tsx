@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '@/styles/globals.css'
 import type { Viewport } from 'next'
+import { initializeArticleSystem } from './init'
+import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -78,6 +80,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Initialize article system on server side
+  if (typeof window === 'undefined') {
+    initializeArticleSystem().catch(console.error)
+  }
+  
   return (
     <html lang="en" className="h-full">
       <head>
@@ -155,6 +162,28 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} h-full antialiased`}>
         <div className="min-h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+          <nav className="bg-white shadow-sm border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between h-16">
+                <div className="flex items-center">
+                  <Link href="/" className="text-xl font-bold text-gray-900">
+                    Wordle Hint Pro
+                  </Link>
+                </div>
+                <div className="flex items-center space-x-8">
+                  <Link href="/" className="text-gray-700 hover:text-gray-900">
+                    Home
+                  </Link>
+                  <Link href="/blog" className="text-gray-700 hover:text-gray-900">
+                    Blog
+                  </Link>
+                  <Link href="/games" className="text-gray-700 hover:text-gray-900">
+                    Games
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </nav>
           {children}
         </div>
       </body>

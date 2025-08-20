@@ -31,16 +31,19 @@ export default function Navigation() {
               Home
             </a>
             <a href="/hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-              Hints
+              Today&apos;s Hints
             </a>
             <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-              Game
+              Play Wordle
             </a>
             <a href="/online" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-              Online
+              Online Hints
             </a>
             <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-              Blog
+              Wordle Blog
+            </a>
+            <a href="/games" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+              Games Hub
             </a>
           </div>
 
@@ -73,16 +76,19 @@ export default function Navigation() {
                 Home
               </a>
               <a href="/hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-                Hints
+                Today&apos;s Hints
               </a>
               <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-                Game
+                Play Wordle
               </a>
               <a href="/online" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-                Online
+                Online Hints
               </a>
               <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-                Blog
+                Wordle Blog
+              </a>
+              <a href="/games" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+                Games Hub
               </a>
             </div>
             
