@@ -298,6 +298,21 @@ export class ArticleStorage {
   }
 
   /**
+   * Get all articles sorted by publishedAt desc (optionally paginated)
+   */
+  public async getAllArticlesSorted(limit: number = 100, offset: number = 0): Promise<Article[]> {
+    try {
+      const allArticles = Array.from(this.articles.values())
+      const sorted = allArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      if (offset <= 0 && limit >= sorted.length) return sorted
+      return sorted.slice(offset, offset + limit)
+    } catch (error) {
+      console.error('Failed to get all articles sorted:', error)
+      return []
+    }
+  }
+
+  /**
    * Persist articles to file system
    */
   private async persistToFileSystem(): Promise<void> {

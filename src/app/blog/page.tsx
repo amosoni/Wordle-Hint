@@ -15,6 +15,7 @@ interface Article {
   readingTime: string
   difficulty: string
   qualityScore: number
+  publishedAt: string
 }
 
 export default function BlogPage() {
@@ -28,8 +29,8 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        // Fetch recent articles from unified articles API (includes webhook-generated posts)
-        const response = await fetch('/api/articles?type=recent&limit=30')
+        // Fetch all articles (time-ordered) and group by date
+        const response = await fetch('/api/articles?type=all&limit=200')
         const data = await response.json()
         if (data.success && data.data?.articles) {
           setArticles(data.data.articles)
@@ -147,59 +148,73 @@ export default function BlogPage() {
             </div>
           </div>
 
-          {/* Articles Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredArticles.map((article) => (
-              <div key={article.slug} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center space-x-2 mb-4">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    {article.category}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    article.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
-                    article.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {article.difficulty}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    article.qualityScore >= 80 ? 'bg-green-100 text-green-800' :
-                    article.qualityScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    Quality: {article.qualityScore}%
-                  </span>
+          {/* Group by date */}
+          {(() => {
+            const groups: Record<string, Article[]> = {}
+            filteredArticles.forEach(a => {
+              const day = new Date(a['publishedAt' as keyof Article] as unknown as string).toISOString().slice(0,10)
+              groups[day] = groups[day] || []
+              groups[day].push(a)
+            })
+            const dates = Object.keys(groups).sort((a,b) => a < b ? 1 : -1)
+            return dates.map(date => (
+              <div key={date} className="mb-10">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">{date}</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {groups[date].map((article) => (
+                    <div key={article.slug} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                          {article.category}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          article.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
+                          article.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {article.difficulty}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          article.qualityScore >= 80 ? 'bg-green-100 text-green-800' :
+                          article.qualityScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          Quality: {article.qualityScore}%
+                        </span>
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{article.title}</h3>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{article.excerpt}</p>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm text-gray-500">{article.readingTime}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {article.tags.slice(0, 3).map((tag, index) => (
+                            <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                              #{tag}
+                            </span>
+                          ))}
+                          {article.tags.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                              +{article.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <a 
+                        href={`/blog/${article.slug}`} 
+                        className="text-blue-600 hover:text-blue-700 font-medium flex items-center group"
+                      >
+                        Read Article 
+                        <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                      </a>
+                    </div>
+                  ))}
                 </div>
-                
-                <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{article.title}</h3>
-                <p className="text-gray-600 mb-4 line-clamp-3">{article.excerpt}</p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-500">{article.readingTime}</span>
-                  <div className="flex flex-wrap gap-1">
-                    {article.tags.slice(0, 3).map((tag, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                        #{tag}
-                      </span>
-                    ))}
-                    {article.tags.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                        +{article.tags.length - 3}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                <a 
-                  href={`/blog/${article.slug}`} 
-                  className="text-blue-600 hover:text-blue-700 font-medium flex items-center group"
-                >
-                  Read Article 
-                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
-                </a>
               </div>
-            ))}
-          </div>
+            ))
+          })()}
 
           {/* No Results */}
           {filteredArticles.length === 0 && (

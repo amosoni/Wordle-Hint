@@ -366,4 +366,16 @@ export class ArticleManager {
       }
     }
   }
+
+  /**
+   * Get all articles sorted by date (desc)
+   */
+  public async getAllArticles(limit: number = 100, offset: number = 0) {
+    try {
+      return await this.storage.getAllArticlesSorted(limit, offset)
+    } catch (error) {
+      console.error('Failed to get all articles:', error)
+      return []
+    }
+  }
 } 

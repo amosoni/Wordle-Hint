@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag')
     const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '10')
-    const type = searchParams.get('type') || 'recent' // recent, popular, recent, popular
+    const offset = parseInt(searchParams.get('offset') || '0')
+    const type = searchParams.get('type') || 'recent' // recent, popular, all
     
     let articles = []
     
@@ -31,6 +32,8 @@ export async function GET(request: NextRequest) {
       articles = await articleManager.getArticlesByCategory('all') // Fallback for now
     } else if (type === 'popular') {
       articles = await articleManager.getPopularArticles(limit)
+    } else if (type === 'all') {
+      articles = await articleManager.getAllArticles(limit, offset)
     } else {
       // Default to recent articles
       articles = await articleManager.getRecentArticles(limit)
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest) {
           tag,
           search,
           limit,
+          offset,
           type
         }
       }
