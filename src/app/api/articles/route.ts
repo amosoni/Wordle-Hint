@@ -6,6 +6,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const articleManager = ArticleManager.getInstance()
     
+    // Initialize article manager to ensure storage is loaded
+    await articleManager.initialize()
+    
     // Get query parameters
     const category = searchParams.get('category')
     const tag = searchParams.get('tag')
