@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Search, ArrowRight } from 'lucide-react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 interface Article {
@@ -64,7 +64,7 @@ export default function BlogPage() {
   if (loading) {
     return (
       <>
-        <Navigation />
+        {/* Global navigation from layout */}
         <div className="min-h-screen bg-gray-50 py-12">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center">
@@ -80,7 +80,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <Navigation />
+      {/* Global navigation from layout */}
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}

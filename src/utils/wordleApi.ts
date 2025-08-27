@@ -1,4 +1,5 @@
 import { WordleDailyData } from '@/types/article'
+import { API_CONFIG, FALLBACK_WORDS } from '@/config/api'
 
 export interface WordleApiResponse {
   success: boolean
@@ -9,13 +10,15 @@ export interface WordleApiResponse {
 
 export class WordleApiService {
   private static instance: WordleApiService
-  private baseUrl: string
+  private baseUrls: string[]
   private apiKey?: string
   private cache: Map<string, { data: WordleDailyData; timestamp: number }> = new Map()
-  private cacheExpiryMs = 24 * 60 * 60 * 1000 // 24 hours
+  private cacheExpiryMs = API_CONFIG.CACHE_EXPIRY_MS
+  private currentApiIndex = 0
 
   private constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_WORDLE_API_URL || 'https://wordle-api.vercel.app/api'
+    // 使用配置文件中的API端点
+    this.baseUrls = API_CONFIG.WORDLE_API_ENDPOINTS
     this.apiKey = process.env.WORDLE_API_KEY
   }
 
@@ -27,7 +30,7 @@ export class WordleApiService {
   }
 
   /**
-   * Get today's Wordle word
+   * Get today's Wordle word with fast fallback
    */
   public async getTodayWord(): Promise<WordleApiResponse> {
     try {
@@ -44,26 +47,55 @@ export class WordleApiService {
         }
       }
 
-      // Try to get from API
-      const response = await this.fetchFromApi('/today')
+      // Try to get from API with fast timeout
+      console.log('Attempting to fetch from external Wordle API...')
       
-      if (response.success && response.data) {
+      // 使用Promise.race来实现快速故障转移
+      const apiPromise = this.fetchFromApi('/today')
+      const timeoutPromise = new Promise<WordleApiResponse>((resolve) => {
+        setTimeout(() => {
+          console.log('API request timeout, falling back to local data...')
+          resolve(this.getLocalFallbackData())
+        }, 3000) // 3秒超时
+      })
+
+      const response = await Promise.race([apiPromise, timeoutPromise])
+      
+      if (response.success && response.data && response.data.source?.includes('Wordle API')) {
         // Cache the result
         this.cache.set(cacheKey, {
           data: response.data,
           timestamp: Date.now()
         })
         
+        console.log(`Successfully fetched word: ${response.data.word} from external API`)
         return response
       }
 
-      // Fallback to local data if API fails
+      // Fallback to local data if API fails or times out
+      console.log('Using local fallback data...')
       return this.getLocalFallbackData()
       
     } catch (error) {
       console.error('Error fetching today word:', error)
+      console.log('Falling back to local data due to error...')
       return this.getLocalFallbackData()
     }
+  }
+
+  /**
+   * Force refresh today's word (clear cache and fetch new data)
+   */
+  public async forceRefreshTodayWord(): Promise<WordleApiResponse> {
+    const today = new Date().toISOString().split('T')[0]
+    const cacheKey = `today-${today}`
+    
+    // Clear today's cache
+    this.cache.delete(cacheKey)
+    console.log('Cleared today\'s cache, forcing refresh...')
+    
+    // Fetch fresh data
+    return this.getTodayWord()
   }
 
   /**
@@ -145,57 +177,128 @@ export class WordleApiService {
   }
 
   /**
-   * Fetch data from the Wordle API
+   * Fetch data from the Wordle API with retry and fallback
    */
   private async fetchFromApi(endpoint: string): Promise<WordleApiResponse> {
-    try {
-      const url = `${this.baseUrl}${endpoint}`
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      if (this.apiKey) {
-        headers['Authorization'] = `Bearer ${this.apiKey}`
-      }
+    const maxRetries = API_CONFIG.MAX_RETRIES
+    let lastError: Error | null = null
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers,
-        next: { revalidate: 3600 } // Cache for 1 hour
-      })
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const baseUrl = this.baseUrls[this.currentApiIndex]
+        // 智能拼接，避免出现 .../today/today 或 .../word/word/today
+        const base = baseUrl.replace(/\/$/, '')
+        const firstSeg = endpoint.replace(/^\//, '').split('/')[0] || ''
+        const trimmedEndpoint = firstSeg && base.endsWith(`/${firstSeg}`)
+          ? endpoint.replace(new RegExp(`^\/${firstSeg}`), '')
+          : endpoint
+        const url = `${base}${trimmedEndpoint}`
+        
+        console.log(`Attempt ${attempt + 1}: Trying API endpoint: ${url}`)
+        
+        const headers: Record<string, string> = {
+          ...API_CONFIG.DEFAULT_HEADERS,
+          'User-Agent': API_CONFIG.USER_AGENT
+        }
+        
+        if (this.apiKey) {
+          headers['Authorization'] = `Bearer ${this.apiKey}`
+        }
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-      }
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT)
 
-      const data = await response.json()
-      
-      if (data.success && data.data) {
-        return {
-          success: true,
-          data: {
-            word: data.data.word || data.data.solution,
-            wordNumber: data.data.wordNumber || data.data.id,
-            date: data.data.date || new Date().toISOString().split('T')[0],
-            source: 'Wordle API',
-            isReal: true
+        // 代理支持：若设置 PROXY_BASE，则通过代理拼接或使用 Agent
+        const fetchOptions: RequestInit = {
+          method: 'GET',
+          headers,
+          signal: controller.signal,
+          next: { revalidate: 3600 }
+        }
+
+        let finalUrl = url
+        const proxyBase = API_CONFIG.PROXY_BASE
+        if (proxyBase && proxyBase.trim().length > 0) {
+          try {
+            // 优先使用 HttpsProxyAgent
+            // @ts-expect-error Node-fetch agent type in Next runtime
+            fetchOptions.agent = new HttpsProxyAgent(proxyBase)
+          } catch {
+            // 退化为通过反向代理拼接路径
+            if (proxyBase.includes('/http')) {
+              // 例如 r.jina.ai/http/<原始URL> 需要完整URL
+              finalUrl = `${proxyBase.replace(/\/$/, '')}/${url}`
+            } else {
+              // 常规反代：拼接去掉协议的URL
+              finalUrl = `${proxyBase.replace(/\/$/, '')}/${url.replace(/^https?:\/\//, '')}`
+            }
           }
         }
-      }
 
-      return {
-        success: false,
-        error: 'Invalid API response format',
-        message: 'The API returned an unexpected response format'
-      }
+        const response = await fetch(finalUrl, fetchOptions)
 
-    } catch (error) {
-      console.error('API fetch error:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown API error',
-        message: 'Failed to fetch data from Wordle API'
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        
+        // 特殊处理纽约时报官方API
+        if (baseUrl.includes('nytimes.com')) {
+          console.log(`✅ Successfully fetched from NYTimes official API: ${baseUrl}`)
+          return {
+            success: true,
+            data: {
+              word: data.solution || data.word,
+              wordNumber: data.id || this.calculateWordNumberFromDate(new Date()),
+              date: data.print_date || new Date().toISOString().split('T')[0],
+              source: 'NYTimes Official Wordle API',
+              isReal: true
+            }
+          }
+        }
+        
+        // 处理其他API格式
+        if (data.success && data.data) {
+          console.log(`✅ Successfully fetched from API endpoint: ${baseUrl}`)
+          return {
+            success: true,
+            data: {
+              word: data.data.word || data.data.solution,
+              wordNumber: data.data.wordNumber || data.data.id,
+              date: data.data.date || new Date().toISOString().split('T')[0],
+              source: `Wordle API (${baseUrl})`,
+              isReal: true
+            }
+          }
+        }
+
+        // Try next API endpoint
+        this.currentApiIndex = (this.currentApiIndex + 1) % this.baseUrls.length
+        lastError = new Error('Invalid API response format')
+        
+      } catch (error) {
+        console.error(`❌ API attempt ${attempt + 1} failed:`, error)
+        lastError = error instanceof Error ? error : new Error('Unknown API error')
+        
+        // Try next API endpoint
+        this.currentApiIndex = (this.currentApiIndex + 1) % this.baseUrls.length
+        
+        // Wait before retrying (reduced wait time)
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY))
+        }
       }
+    }
+
+    // All API attempts failed
+    console.error('❌ All API endpoints failed, falling back to local data')
+    return {
+      success: false,
+      error: lastError?.message || 'All API endpoints failed',
+      message: 'Failed to fetch data from all Wordle API endpoints'
     }
   }
 
@@ -211,19 +314,28 @@ export class WordleApiService {
     const daysSinceEpoch = Math.floor((targetDate.getTime() - wordleEpoch.getTime()) / (1000 * 60 * 60 * 24))
     const calculatedWordNumber = wordNumber || Math.max(1, daysSinceEpoch)
     
-    // Use a fallback word (you can expand this list)
-    const fallbackWords = [
-      'ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT',
-      'AFTER', 'AGAIN', 'AGENT', 'AGREE', 'AHEAD', 'ALARM', 'ALBUM', 'ALERT',
-      'ALIKE', 'ALIVE', 'ALLOW', 'ALONE', 'ALONG', 'ALTER', 'AMONG', 'ANGER',
-      'ANGLE', 'ANGRY', 'APART', 'APPLE', 'APPLY', 'ARENA', 'ARGUE', 'ARISE',
-      'ARRAY', 'ASIDE', 'ASSET', 'AUDIO', 'AUDIT', 'AVOID', 'AWARD', 'AWARE'
-    ]
+    // Debug information
+    console.log(`Date calculation debug:`)
+    console.log(`  Target date: ${targetDate.toISOString().split('T')[0]}`)
+    console.log(`  Wordle epoch: 2021-06-19`)
+    console.log(`  Days since epoch: ${daysSinceEpoch}`)
+    console.log(`  Calculated word number: ${calculatedWordNumber}`)
     
-    const wordIndex = (calculatedWordNumber - 1) % fallbackWords.length
+    // Use a fallback word based on the actual date to ensure daily changes
+    const fallbackWords = FALLBACK_WORDS
+    
+    // Use date-based selection to ensure daily changes
+    // Use the actual date string as a seed for more variety
+    const dateString = targetDate.toISOString().split('T')[0]
+    const dateSeed = parseInt(dateString.replace(/-/g, ''), 10)
+    const wordIndex = (dateSeed + calculatedWordNumber) % fallbackWords.length
     const fallbackWord = fallbackWords[wordIndex]
     
-    console.log(`Using fallback word: ${fallbackWord} for date: ${date || 'today'}`)
+    console.log(`Word selection debug:`)
+    console.log(`  Date string: ${dateString}`)
+    console.log(`  Date seed: ${dateSeed}`)
+    console.log(`  Word index: ${wordIndex}`)
+    console.log(`  Selected word: ${fallbackWord}`)
     
     return {
       success: true,
@@ -231,7 +343,7 @@ export class WordleApiService {
         word: fallbackWord,
         wordNumber: calculatedWordNumber,
         date: date || today.toISOString().split('T')[0],
-        source: 'Local Fallback',
+        source: 'Local Fallback (Daily Rotating)',
         isReal: false
       }
     }
@@ -290,5 +402,101 @@ export class WordleApiService {
     if (expiredKeys.length > 0) {
       console.log(`Cleaned ${expiredKeys.length} expired cache entries`)
     }
+  }
+
+  /**
+   * Test API connectivity and return status
+   */
+  public async testApiConnectivity(): Promise<{
+    isConnected: boolean
+    workingEndpoints: string[]
+    failedEndpoints: string[]
+    lastError?: string
+  }> {
+    const workingEndpoints: string[] = []
+    const failedEndpoints: string[] = []
+    let lastError: string | undefined
+
+    console.log('🔍 开始测试所有API端点...')
+
+    for (let i = 0; i < this.baseUrls.length; i++) {
+      try {
+        const baseUrl = this.baseUrls[i]
+        const url = `${baseUrl}/today`
+        
+        console.log(`📡 测试端点 ${i + 1}/${this.baseUrls.length}: ${url}`)
+        
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Wordle-Hint-Pro/1.0'
+          },
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          workingEndpoints.push(baseUrl)
+          console.log(`✅ API端点工作正常: ${baseUrl}`)
+          
+          // 如果找到工作的端点，立即设置为当前端点
+          if (this.currentApiIndex !== i) {
+            this.currentApiIndex = i
+            console.log(`🔄 切换到工作端点: ${baseUrl}`)
+          }
+        } else {
+          failedEndpoints.push(baseUrl)
+          console.log(`❌ API端点失败: ${baseUrl} - ${response.status}`)
+        }
+      } catch (error) {
+        failedEndpoints.push(this.baseUrls[i])
+        lastError = error instanceof Error ? error.message : 'Unknown error'
+        console.log(`❌ API端点失败: ${this.baseUrls[i]} - ${lastError}`)
+      }
+    }
+
+    console.log(`📊 API测试完成: ${workingEndpoints.length} 个工作, ${failedEndpoints.length} 个失败`)
+
+    return {
+      isConnected: workingEndpoints.length > 0,
+      workingEndpoints,
+      failedEndpoints,
+      lastError
+    }
+  }
+
+  /**
+   * Get system status information
+   */
+  public getStatus(): {
+    totalEndpoints: number
+    workingEndpoints: number
+    currentApiIndex: number
+    cacheSize: number
+    cacheExpiryMs: number
+  } {
+    return {
+      totalEndpoints: this.baseUrls.length,
+      workingEndpoints: 0, // This would need to be updated by testApiConnectivity
+      currentApiIndex: this.currentApiIndex,
+      cacheSize: this.cache.size,
+      cacheExpiryMs: this.cacheExpiryMs
+    }
+  }
+
+  /**
+   * Calculate Wordle word number from a given date
+   * Based on the official Wordle epoch (June 19, 2021)
+   */
+  private calculateWordNumberFromDate(date: Date): number {
+    const epoch = new Date('2021-06-19')
+    const timeDiff = date.getTime() - epoch.getTime()
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24))
+    return Math.max(0, daysDiff)
   }
 } 

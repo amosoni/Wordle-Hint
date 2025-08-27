@@ -30,9 +30,10 @@ export default function Navigation() {
             <a href="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Home
             </a>
-            <a href="/hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+            <a href="/real-hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Today&apos;s Hints
             </a>
+            
             <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Play Wordle
             </a>
@@ -75,7 +76,7 @@ export default function Navigation() {
               <a href="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Home
               </a>
-              <a href="/hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
+              <a href="/real-hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Today&apos;s Hints
               </a>
               <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">

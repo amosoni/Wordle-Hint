@@ -4,6 +4,7 @@ import '@/styles/globals.css'
 import type { Viewport } from 'next'
 import { initializeArticleSystem } from './init'
 import Link from 'next/link'
+import { Lightbulb } from 'lucide-react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -166,20 +167,45 @@ export default function RootLayout({
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between h-16">
                 <div className="flex items-center">
-                  <Link href="/" className="text-xl font-bold text-gray-900">
-                    Wordle Hint Pro
+                  <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                      <Lightbulb className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-xl font-bold text-gray-900">WordleHint</span>
+                      <span className="text-sm text-gray-500">.help</span>
+                    </div>
                   </Link>
                 </div>
                 <div className="flex items-center space-x-8">
                   <Link href="/" className="text-gray-700 hover:text-gray-900">
                     Home
                   </Link>
+                  <Link href="/real-hints" className="text-gray-700 hover:text-gray-900">
+                    Today&apos;s Hints
+                  </Link>
+                  <Link href="/game" className="text-gray-700 hover:text-gray-900">
+                    Play Wordle
+                  </Link>
+                  <Link href="/online" className="text-gray-700 hover:text-gray-900">
+                    Online Hints
+                  </Link>
                   <Link href="/blog" className="text-gray-700 hover:text-gray-900">
-                    Blog
+                    Wordle Blog
                   </Link>
                   <Link href="/games" className="text-gray-700 hover:text-gray-900">
-                    Games
+                    Games Hub
                   </Link>
+                  <div className="hidden md:flex items-center space-x-6 pl-4 border-l border-gray-200">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8z" /></svg>
+                      <span>2,847</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3a1 1 0 012 0 7 7 0 015 6.708V11a3 3 0 001 2.236V15a1 1 0 01-1 1h-5v3a1 1 0 11-2 0v-3H7a1 1 0 01-1-1v-1.764A3 3 0 007 11V9.708A7 7 0 0111 3z" /></svg>
+                      <span>15,392</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

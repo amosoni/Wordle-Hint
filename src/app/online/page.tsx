@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { Lightbulb, Target, CheckCircle, Globe, Users, Clock, TrendingUp, Award, Wifi, Smartphone, Monitor, Tablet, Gamepad2, ArrowRight, X, Info, BookOpenCheck, GraduationCap, BookOpen, Zap } from 'lucide-react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 interface HintData {
@@ -138,7 +138,7 @@ export default function OnlinePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
@@ -153,7 +153,7 @@ export default function OnlinePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
             <div className="bg-red-50 border border-red-200 rounded-xl p-8">
@@ -187,7 +187,7 @@ export default function OnlinePage() {
       </Head>
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
       
       <main className="pt-28 pb-16">
         <div className="max-w-6xl mx-auto px-6">

@@ -22,7 +22,7 @@ import {
   Smartphone,
   Tablet
 } from 'lucide-react'
-import Navigation from '@/components/Navigation'
+// Navigation removed; using global layout navigation
 import Footer from '@/components/Footer'
 import { FadeInUp, SlideInLeft, SlideInRight, ScaleIn, RotateIn } from '@/components/ScrollAnimation'
 
@@ -212,7 +212,7 @@ export default function HomePage() {
       {/* SEO meta tags removed for App Router compatibility */}
       
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Navigation />
+        {/* Global navigation from layout is used */}
       
       {/* Hero 区域 */}
       <section className="relative pt-32 pb-20 overflow-hidden">

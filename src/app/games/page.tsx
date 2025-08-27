@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 interface Game {
@@ -95,7 +95,7 @@ export default function GamesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
         <div className="flex items-center justify-center py-24">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
@@ -109,7 +109,7 @@ export default function GamesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-indigo-50">
-      <Navigation />
+      {/* Global navigation from layout */}
       <div className="mt-16"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">

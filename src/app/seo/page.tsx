@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { BookOpen, Zap, Target, Lightbulb, TrendingUp } from 'lucide-react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 interface EducationalContent {
@@ -99,7 +99,7 @@ export default function SEOPage() {
           <meta name="twitter:description" content="Daily Wordle questions, analysis, and learning challenges." />
         </Head>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-          <Navigation />
+          {/* Global navigation from layout */}
           <main className="pt-20 pb-16">
             <div className="container mx-auto px-4">
               <div className="text-center">
@@ -159,7 +159,7 @@ export default function SEOPage() {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
         
         <main className="pt-20 pb-16">
           <div className="container mx-auto px-4">

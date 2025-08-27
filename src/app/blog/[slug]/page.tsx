@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 interface Article {
@@ -44,7 +44,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
   if (loading) {
     return (
       <>
-        <Navigation />
+        {/* Global navigation from layout */}
         <div className="min-h-screen bg-gray-50 py-12">
           <div className="max-w-4xl mx-auto px-4">
             <div className="animate-pulse">
@@ -66,7 +66,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
   if (!article) {
     return (
       <>
-        <Navigation />
+        {/* Global navigation from layout */}
         <div className="min-h-screen bg-gray-50 py-12">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center">
@@ -85,7 +85,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
 
   return (
     <>
-      <Navigation />
+      {/* Global navigation from layout */}
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-4xl mx-auto px-4">
           {/* Article Header */}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { Lightbulb, Target, Clock, CheckCircle, ArrowLeft, Home, Gamepad2, XCircle, Trophy, Star, TrendingUp, Award } from 'lucide-react'
-import Navigation from '@/components/Navigation'
+// Using global navigation from layout
 import Footer from '@/components/Footer'
 
 export default function GamePage() {
@@ -148,7 +148,7 @@ export default function GamePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
+        {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
@@ -164,8 +164,7 @@ export default function GamePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <Navigation />
-        <Navigation />
+        {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
             <div className="bg-red-50 border border-red-200 rounded-xl p-8">
@@ -270,8 +269,7 @@ export default function GamePage() {
         <div className="absolute bottom-1/3 left-2/3 w-2.5 h-2.5 bg-pink-500/60 rounded-full animate-ping animation-delay-2000"></div>
       </div>
 
-      {/* 统一导航栏 */}
-      <Navigation />
+      {/* Global navigation from layout */}
 
       <div className="relative z-10 pt-24">
         {/* 顶部导航 */}

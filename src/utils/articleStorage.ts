@@ -58,13 +58,37 @@ export class ArticleStorage {
   public async storeArticles(word: string, articles: Article[]): Promise<void> {
     const wordKey = word.toLowerCase()
     
-    // Store individual articles
+    // Store individual articles into map (add or update)
     for (const article of articles) {
       this.articles.set(article.id, article)
     }
     
-    // Store word-article mapping
-    this.wordArticles.set(wordKey, articles)
+    // Append to existing word list instead of overwriting
+    const existingForWord = this.wordArticles.get(wordKey) || []
+    const combined = [...existingForWord]
+    for (const a of articles) {
+      const existsIdx = combined.findIndex(x => x.id === a.id)
+      if (existsIdx >= 0) {
+        combined[existsIdx] = a
+      } else {
+        combined.push(a)
+      }
+    }
+
+    // Respect maxArticlesPerWord by trimming oldest items
+    const maxPerWord = this.options.maxArticlesPerWord || 5
+    const trimmed = combined
+      .sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime())
+    while (trimmed.length > maxPerWord) {
+      const removed = trimmed.shift()
+      if (removed) {
+        // keep article in global map for historical browse across words if needed
+        // but typically the per-word cap is enough; do not delete global map here
+      }
+    }
+
+    // Update word-article mapping
+    this.wordArticles.set(wordKey, trimmed)
     
     // Persist to file system
     await this.persistToFileSystem()

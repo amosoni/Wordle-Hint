@@ -1,182 +1,179 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from 'next/server'
 import { ArticleManager } from '@/utils/articleManager'
 import { ArticleScheduler } from '@/utils/scheduler'
+import { WordleApiService } from '@/utils/wordleApi'
 
 export async function GET() {
   try {
     const articleManager = ArticleManager.getInstance()
     const scheduler = ArticleScheduler.getInstance()
+    const wordleApi = WordleApiService.getInstance()
     
     // Get system status
-    const [articleStatus, schedulerStatus, healthCheck] = await Promise.all([
-      articleManager.getStatus(),
-      scheduler.getStatus(),
-      scheduler.healthCheck()
-    ])
+    const articleStatus = await articleManager.getStatus()
+    const schedulerStatus = scheduler.getStatus()
+    const wordleCacheStats = wordleApi.getCacheStats()
+    const schedulerHealth = await scheduler.healthCheck()
     
     return NextResponse.json({
       success: true,
-      data: {
-        system: {
-          timestamp: new Date().toISOString(),
-          version: '1.0.0',
-          environment: process.env.NODE_ENV || 'development'
-        },
-        articles: articleStatus,
-        scheduler: schedulerStatus,
-        health: healthCheck
+      timestamp: new Date().toISOString(),
+      system: {
+        status: 'operational',
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: process.version
+      },
+      articles: {
+        ...articleStatus,
+        storage: 'file-system'
+      },
+      scheduler: {
+        ...schedulerStatus,
+        health: schedulerHealth
+      },
+      wordle: {
+        cache: wordleCacheStats,
+        lastRefresh: schedulerStatus.lastWordleRefresh,
+        apiStatus: 'fallback' // Since external API is failing
+      },
+      nextActions: {
+        dailyGeneration: schedulerStatus.nextDailyRun,
+        cacheCleanup: `Every ${schedulerStatus.cacheCleanupInterval} hours`,
+        wordleRefresh: `Every ${schedulerStatus.wordleCacheRefreshInterval} hours`,
+        healthCheck: `Every ${schedulerStatus.healthCheckInterval} minutes`
       }
     })
-    
   } catch (error) {
-    console.error('Error getting admin status:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to get system status',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { action, ...params } = body
+    const { action, ...params } = await request.json()
     
     const articleManager = ArticleManager.getInstance()
     const scheduler = ArticleScheduler.getInstance()
+    const wordleApi = WordleApiService.getInstance()
     
     switch (action) {
-      case 'start_scheduler':
+      case 'start-scheduler':
         await scheduler.start()
         return NextResponse.json({
           success: true,
-          message: 'Scheduler started successfully'
+          message: 'Scheduler started successfully',
+          status: scheduler.getStatus()
         })
         
-      case 'stop_scheduler':
+      case 'stop-scheduler':
         scheduler.stop()
         return NextResponse.json({
           success: true,
-          message: 'Scheduler stopped successfully'
+          message: 'Scheduler stopped successfully',
+          status: scheduler.getStatus()
         })
         
-      case 'generate_articles':
-        const { word, date } = params
-        if (!word) {
+      case 'generate-articles':
+        const word = params.word
+        if (word) {
+          await articleManager.forceRegenerateArticles(word)
           return NextResponse.json({
-            success: false,
-            error: 'Word is required for article generation'
-          }, { status: 400 })
+            success: true,
+            message: `Articles regenerated for word: ${word}`,
+            word: word
+          })
+        } else {
+          await scheduler.triggerManualGeneration()
+          return NextResponse.json({
+            success: true,
+            message: 'Daily articles generated successfully'
+          })
         }
         
-        const result = await articleManager.generateArticlesForWord(word, {
-          word: word.toUpperCase(),
-          wordNumber: 1,
-          date: date || new Date().toISOString().split('T')[0],
-          source: 'Admin Manual',
-          isReal: false
-        })
-        
-        return NextResponse.json({
-          success: result.success,
-          message: result.message,
-          error: result.error,
-          articles: result.articles
-        })
-        
-      case 'regenerate_all_articles':
-        // Regenerate articles for common words
-        const commonWords = ['ABOUT', 'ABOVE', 'ABUSE', 'ACTOR', 'ACUTE', 'ADMIT', 'ADOPT', 'ADULT']
-        const results = []
-        
-        for (const word of commonWords) {
-          try {
-            const result = await articleManager.generateArticlesForWord(word, {
-              word: word.toUpperCase(),
-              wordNumber: 1,
-              date: new Date().toISOString().split('T')[0],
-              source: 'Admin Regeneration',
-              isReal: false
-            })
-            results.push({ word, success: result.success, articlesCount: result.articles.length })
-          } catch (error) {
-            results.push({ word, success: false, error: error instanceof Error ? error.message : 'Unknown error' })
-          }
-        }
-        
+      case 'refresh-wordle':
+        await scheduler.forceRefreshWordleData()
         return NextResponse.json({
           success: true,
-          message: 'Regeneration completed',
-          results
+          message: 'Wordle data refreshed successfully',
+          cacheStats: wordleApi.getCacheStats()
         })
         
-      case 'restore_test_articles':
-        // Restore the TEST articles that were shown in the test
-        const testWord = 'TEST'
-        const testResult = await articleManager.generateArticlesForWord(testWord, {
-          word: testWord,
-          wordNumber: 1523,
-          date: new Date().toISOString().split('T')[0],
-          source: 'Admin Restore',
-          isReal: false
-        })
-        
-        return NextResponse.json({
-          success: testResult.success,
-          message: 'Test articles restored',
-          articles: testResult.articles
-        })
-        
-      case 'clear_caches':
-        articleManager.clearCaches()
+      case 'clear-caches':
+        wordleApi.clearCache()
+        articleManager.cleanExpiredCaches()
         return NextResponse.json({
           success: true,
           message: 'All caches cleared successfully'
         })
         
-      case 'cleanup_caches':
-        articleManager.cleanExpiredCaches()
+      case 'update-scheduler':
+        const { generationTime, cacheCleanupInterval, wordleCacheRefreshInterval, healthCheckInterval } = params
+        scheduler.updateOptions({
+          generationTime,
+          cacheCleanupInterval,
+          wordleCacheRefreshInterval,
+          healthCheckInterval
+        })
         return NextResponse.json({
           success: true,
-          message: 'Expired cache entries cleaned successfully'
+          message: 'Scheduler options updated successfully',
+          options: scheduler.getStatus().options
         })
         
-      case 'force_today_generation':
-        await scheduler.triggerManualGeneration()
+      case 'health-check':
+        const health = await scheduler.healthCheck()
         return NextResponse.json({
           success: true,
-          message: 'Today articles generation triggered successfully'
+          health: health
         })
         
-      case 'update_scheduler_options':
-        const { schedulerOptions } = params
-        if (schedulerOptions) {
-          scheduler.updateOptions(schedulerOptions)
+      case 'test-wordle-api':
+        try {
+          const wordleApi = WordleApiService.getInstance()
+          const connectivity = await wordleApi.testApiConnectivity()
+          
           return NextResponse.json({
             success: true,
-            message: 'Scheduler options updated successfully'
+            action: 'test-wordle-api',
+            result: connectivity,
+            message: connectivity.isConnected 
+              ? `API连接成功！可用端点: ${connectivity.workingEndpoints.length}`
+              : '所有API端点都连接失败，使用本地备用数据'
           })
-        } else {
+        } catch (error) {
           return NextResponse.json({
             success: false,
-            error: 'Scheduler options are required'
-          }, { status: 400 })
+            action: 'test-wordle-api',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          }, { status: 500 })
         }
         
       default:
         return NextResponse.json({
           success: false,
-          error: 'Invalid action. Supported actions: start_scheduler, stop_scheduler, generate_articles, regenerate_all_articles, restore_test_articles, clear_caches, cleanup_caches, force_today_generation, update_scheduler_options'
+          error: `Unknown action: ${action}`,
+          availableActions: [
+            'start-scheduler',
+            'stop-scheduler', 
+            'generate-articles',
+            'refresh-wordle',
+            'clear-caches',
+            'update-scheduler',
+            'health-check'
+          ]
         }, { status: 400 })
     }
     
   } catch (error) {
-    console.error('Error in admin POST:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to process admin request',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 } 
