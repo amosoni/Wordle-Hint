@@ -35,6 +35,36 @@ export default function BlogPage() {
         if (data.success && data.data?.articles) {
           setArticles(data.data.articles)
         }
+
+        // Ensure today's real word articles exist (compare with Worker)
+        try {
+          const WORKER_URL = 'https://sparkling-cake-35ce.vnvgtktbcx.workers.dev/today'
+          const r = await fetch(WORKER_URL)
+          if (r.ok) {
+            const nyt = await r.json() as Record<string, unknown>
+            const real = typeof nyt.solution === 'string' ? (nyt.solution as string).toUpperCase() : ''
+            if (real && Array.isArray(data.data?.articles)) {
+              const latest = data.data.articles[0]
+              const latestWord = typeof latest?.word === 'string' ? latest.word : ''
+              if (real !== latestWord) {
+                // trigger webhook to generate and then refetch
+                await fetch('/api/webhook?token=' + encodeURIComponent(process.env.WEBHOOK_TOKEN || ''), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ word: real, wordNumber: Number(nyt.id || 0), date: String(nyt.print_date || new Date().toISOString().slice(0,10)), source: 'NYT' })
+                }).catch(() => {})
+                // refetch
+                const re = await fetch('/api/articles?type=all&limit=200')
+                const reData = await re.json()
+                if (reData.success && reData.data?.articles) {
+                  setArticles(reData.data.articles)
+                }
+              }
+            }
+          }
+        } catch {
+          // ignore and keep current list
+        }
       } catch (error) {
         console.error('Error fetching articles:', error)
       } finally {

@@ -16,6 +16,11 @@ export class ArticleStorage {
   private options: ArticleStorageOptions
   private storagePath: string
 
+  // Optional Upstash REST config (server-side env)
+  private readonly upstashUrl = process.env.UPSTASH_REDIS_REST_URL || ''
+  private readonly upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN || ''
+  private readonly redisKey = 'wordle:articles:v1'
+
   private constructor(options: ArticleStorageOptions = {}) {
     this.options = {
       maxArticlesPerWord: 5,
@@ -27,7 +32,7 @@ export class ArticleStorage {
     
     this.storagePath = this.options.storagePath!
     
-    // Ensure storage directory exists
+    // Ensure storage directory exists (for local/dev fallback)
     this.ensureStorageDirectory()
   }
 
@@ -83,15 +88,18 @@ export class ArticleStorage {
       const removed = trimmed.shift()
       if (removed) {
         // keep article in global map for historical browse across words if needed
-        // but typically the per-word cap is enough; do not delete global map here
       }
     }
 
     // Update word-article mapping
     this.wordArticles.set(wordKey, trimmed)
     
-    // Persist to file system
-    await this.persistToFileSystem()
+    // Persist to external KV if available, else file system
+    if (await this.persistToUpstash()) {
+      console.log('Articles persisted to Upstash KV')
+    } else {
+      await this.persistToFileSystem()
+    }
     
     // Persist to localStorage if available (client-side)
     this.persistToLocalStorage()
@@ -251,8 +259,8 @@ export class ArticleStorage {
       totalArticles: allArticles.length,
       totalWords: this.wordArticles.size,
       categories,
-      totalViews: allArticles.reduce((sum, article) => sum + article.viewCount, 0),
-      totalLikes: allArticles.reduce((sum, article) => sum + article.likeCount, 0)
+      totalViews: allArticles.reduce((sum, article) => sum + (article.viewCount || 0), 0),
+      totalLikes: allArticles.reduce((sum, article) => sum + (article.likeCount || 0), 0)
     }
   }
 
@@ -313,6 +321,59 @@ export class ArticleStorage {
   }
 
   /**
+   * Persist articles to Upstash (if configured)
+   */
+  private async persistToUpstash(): Promise<boolean> {
+    if (!this.upstashUrl || !this.upstashToken) return false
+    try {
+      const storageData = {
+        articles: Array.from(this.articles.entries()),
+        wordArticles: Array.from(this.wordArticles.entries()),
+        timestamp: Date.now()
+      }
+      const res = await fetch(`${this.upstashUrl}/set/${this.redisKey}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${this.upstashToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: JSON.stringify(storageData) })
+      })
+      return res.ok
+    } catch (e) {
+      console.warn('Failed to persist to Upstash:', e)
+      return false
+    }
+  }
+
+  /**
+   * Load from Upstash (if configured)
+   */
+  private async loadFromUpstash(): Promise<boolean> {
+    if (!this.upstashUrl || !this.upstashToken) return false
+    try {
+      const res = await fetch(`${this.upstashUrl}/get/${this.redisKey}`, {
+        headers: { 'Authorization': `Bearer ${this.upstashToken}` }
+      })
+      if (!res.ok) return false
+      type UpstashGetResponse = { result?: string | null }
+      const json = await res.json().catch(() => null) as UpstashGetResponse | null
+      const raw = json?.result || null
+      if (!raw) return false
+      const parsed = JSON.parse(raw) as { articles: [string, Article][], wordArticles: [string, Article[]][], timestamp: number }
+      const now = Date.now()
+      const expiryTime = this.options.cacheExpiryHours! * 60 * 60 * 1000
+      if (now - parsed.timestamp < expiryTime) {
+        this.articles = new Map(parsed.articles)
+        this.wordArticles = new Map(parsed.wordArticles)
+        console.log(`Articles loaded from Upstash KV: ${this.articles.size} articles`)
+        return true
+      }
+      return false
+    } catch (e) {
+      console.warn('Failed to load from Upstash:', e)
+      return false
+    }
+  }
+
+  /**
    * Persist articles to file system
    */
   private async persistToFileSystem(): Promise<void> {
@@ -332,7 +393,7 @@ export class ArticleStorage {
   }
 
   /**
-   * Load articles from file system
+   * Load articles (Upstash → file system → localStorage)
    */
   private async loadFromFileSystem(): Promise<void> {
     try {
@@ -421,11 +482,16 @@ export class ArticleStorage {
   }
 
   /**
-   * Initialize storage (load from file system and localStorage if available)
+   * Initialize storage (Upstash KV → file system → localStorage)
    */
   public async initialize(): Promise<void> {
-    // First try to load from file system (server-side persistence)
-    await this.loadFromFileSystem()
+    // Try Upstash first for production persistence
+    const loadedFromKV = await this.loadFromUpstash()
+
+    if (!loadedFromKV) {
+      // Fallback to file system (dev/local)
+      await this.loadFromFileSystem()
+    }
     
     // Then try to load from localStorage (client-side cache)
     this.loadFromLocalStorage()
