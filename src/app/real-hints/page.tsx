@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lightbulb, CheckCircle, XCircle, RefreshCw, Globe } from 'lucide-react'
+import { Lightbulb, CheckCircle, XCircle, RefreshCw, Globe, Copy, Share2, ArrowUp, Link as LinkIcon } from 'lucide-react'
+import Footer from '@/components/Footer'
 
 interface RealHint {
   level: number
@@ -31,10 +32,17 @@ export default function RealHintsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [toast, setToast] = useState<string>('')
+  const [copyOk, setCopyOk] = useState<boolean>(false)
 
   useEffect(() => {
     fetchRealHints()
   }, [])
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2200)
+  }
 
   const fetchRealHints = async () => {
     try {
@@ -149,6 +157,7 @@ export default function RealHintsPage() {
             }
             setHintsData(data)
             setLoading(false)
+            if (isRefreshing) showToast(`Updated to ${upper} · ${dateStr}`)
             return
           }
         }
@@ -169,6 +178,7 @@ export default function RealHintsPage() {
       if (result.success && result.data) {
         console.log('✅ Got hints from fallback local API:', result.data)
         setHintsData(result.data)
+        if (isRefreshing) showToast('Updated via fallback API')
       } else {
         throw new Error(result.message || 'Failed to fetch hints')
       }
@@ -184,6 +194,31 @@ export default function RealHintsPage() {
     setIsRefreshing(true)
     await fetchRealHints()
     setIsRefreshing(false)
+  }
+
+  const copyWord = async () => {
+    try {
+      if (hintsData?.word) {
+        await navigator.clipboard.writeText(hintsData.word)
+        setCopyOk(true)
+        setTimeout(() => setCopyOk(false), 1500)
+      }
+    } catch {
+      showToast('Copy failed')
+    }
+  }
+
+  const sharePage = async () => {
+    try {
+      const url = window.location.href
+      const nav = navigator as Navigator & { share?: (data: { title?: string; url?: string }) => Promise<void> }
+      if (typeof nav.share === 'function') {
+        await nav.share({ title: "Today's Wordle", url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        showToast('Link copied')
+      }
+    } catch {}
   }
 
   const getColorClasses = (color: string) => {
@@ -228,12 +263,28 @@ export default function RealHintsPage() {
           <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
             <h2 className="text-xl font-bold mb-2">❌ Failed to load hints</h2>
             <p className="text-sm mb-4">{error}</p>
-            <button 
-              onClick={refreshHints}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-            >
-              🔄 Retry
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button 
+                onClick={refreshHints}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+              >
+                🔄 Retry
+              </button>
+              <button
+                onClick={async () => {
+                  // Force use local API without worker
+                  try {
+                    setLoading(true)
+                    const r = await fetch('/api/wordle')
+                    const j = await r.json()
+                    if (j.success) setHintsData(j.data)
+                  } finally { setLoading(false) }
+                }}
+                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors"
+              >
+                Use local fallback
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -251,149 +302,174 @@ export default function RealHintsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center">
-              <Lightbulb className="w-10 h-10 text-blue-600 mr-3" />
-              Real Wordle Hints
-            </h1>
-            <p className="text-lg text-gray-600 mb-4">Connected to official Wordle data via Cloudflare Worker</p>
-            
-            {/* Status Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-4">
-              {hintsData.isReal ? (
-                <span className="bg-green-100 text-green-800 flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Real Data
-                </span>
-              ) : (
-                <span className="bg-yellow-100 text-yellow-800 flex items-center">
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Local Fallback
-                </span>
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8" id="top">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center">
+                <Lightbulb className="w-10 h-10 text-blue-600 mr-3" />
+                Real Wordle Hints
+              </h1>
+              <p className="text-lg text-gray-600 mb-4">Connected to official Wordle data via Cloudflare Worker</p>
+              {toast && (
+                <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-md text-sm mb-3">{toast}</div>
               )}
-            </div>
-
-            {/* Refresh Button */}
-            <button
-              onClick={refreshHints}
-              disabled={isRefreshing}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center mx-auto"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh Hints'}
-            </button>
-          </div>
-
-          {/* Today's Word Info */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-2xl mb-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Today&apos;s Wordle</h2>
-              <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-6 inline-block">
-                <div className="text-sm text-gray-600 mb-2">Today&apos;s Word</div>
-                <div className="text-6xl font-bold text-blue-600">{hintsData.word}</div>
-                <div className="text-sm text-gray-500 mt-2">
-                  Word #{hintsData.wordNumber} • {hintsData.date}
-                </div>
+              {/* Quick actions */}
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <button
+                  onClick={copyWord}
+                  className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition-colors flex items-center"
+                >
+                  <Copy className="w-4 h-4 mr-2" /> {copyOk ? 'Copied' : "Copy Today's Word"}
+                </button>
+                <button
+                  onClick={sharePage}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors flex items-center"
+                >
+                  <Share2 className="w-4 h-4 mr-2" /> Share
+                </button>
+                <a href="#data-source" className="px-4 py-2 bg-white border text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center">
+                  <LinkIcon className="w-4 h-4 mr-2" /> Data Source
+                </a>
+                <a href="#top" className="px-3 py-2 bg-white border text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center">
+                  <ArrowUp className="w-4 h-4" />
+                </a>
               </div>
-              
-              <div className="mt-4 text-sm text-gray-600">
-                <p>Source: {hintsData.source}</p>
-                <p>Difficulty: {(hintsData.difficulty || 'medium').toUpperCase()}</p>
-                <p>Official Hints: {hintsData.officialHintsAvailable ? '✅ Available' : '❌ Unavailable'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Real Hints Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {hintsData.hints.map((hint, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${getColorClasses(hint.color)} rounded-xl flex items-center justify-center text-white`}>
-                    <span className="text-lg font-bold">{getColorEmoji(hint.color)}</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-500">{hint.badge}</span>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{hint.title}</h3>
-                <p className="text-sm text-gray-600 mb-3">{hint.description}</p>
-                
-                <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                  <p className="text-sm text-gray-700 font-medium mb-1">Example:</p>
-                  <p className="text-xs text-gray-600">{hint.example}</p>
-                </div>
-                
-                <div className="bg-blue-50 rounded-lg p-3">
-                  <p className="text-sm text-gray-700 font-medium mb-1">Tip:</p>
-                  <p className="text-xs text-gray-600">{hint.tip}</p>
-                </div>
-                
-                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                  <span className={hint.isOfficial ? 'text-green-600' : 'text-yellow-600'}>
-                    {hint.isOfficial ? '✅ Official-style' : '🔄 Smart-generated'}
+              {/* Status Badge */}
+              <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-4">
+                {hintsData.isReal ? (
+                  <span className="bg-green-100 text-green-800 flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Real Data
                   </span>
-                  <span>Level {hint.level}</span>
-                </div>
+                ) : (
+                  <span className="bg-yellow-100 text-yellow-800 flex items-center">
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Local Fallback
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
 
-          {/* Data Source Information */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-2xl">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Globe className="w-6 h-6 text-blue-600 mr-3" />
-              Data Source
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">System Status</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Data Authenticity:</span>
-                    <span className={hintsData.isReal ? 'text-green-600 font-medium' : 'text-yellow-600 font-medium'}>
-                      {hintsData.isReal ? 'Real Data' : 'Local Fallback'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Official Hints:</span>
-                    <span className={hintsData.officialHintsAvailable ? 'text-green-600 font-medium' : 'text-yellow-600 font-medium'}>
-                      {hintsData.officialHintsAvailable ? 'Available' : 'Unavailable'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Source:</span>
-                    <span className="text-gray-900 font-medium">{hintsData.source}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Last Updated:</span>
-                    <span className="text-gray-900 font-medium">{new Date().toLocaleString()}</span>
+              {/* Refresh Button */}
+              <button
+                onClick={refreshHints}
+                disabled={isRefreshing}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center mx-auto"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh Hints'}
+              </button>
+            </div>
+
+            {/* Today's Word Info */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-2xl mb-8">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Today&apos;s Wordle</h2>
+                <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl p-6 inline-block">
+                  <div className="text-sm text-gray-600 mb-2">Today&apos;s Word</div>
+                  <div className="text-6xl font-bold text-blue-600">{hintsData.word}</div>
+                  <div className="text-sm text-gray-500 mt-2">
+                    Word #{hintsData.wordNumber} • {hintsData.date}
                   </div>
                 </div>
+                
+                <div className="mt-4 text-sm text-gray-600">
+                  <p>Source: {hintsData.source}</p>
+                  <p>Difficulty: {(hintsData.difficulty || 'medium').toUpperCase()}</p>
+                  <p>Official Hints: {hintsData.officialHintsAvailable ? '✅ Available' : '❌ Unavailable'}</p>
+                </div>
               </div>
+            </div>
+
+            {/* Real Hints Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {hintsData.hints.map((hint, index) => (
+                <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-12 h-12 bg-gradient-to-r ${getColorClasses(hint.color)} rounded-xl flex items-center justify-center text-white`}>
+                      <span className="text-lg font-bold">{getColorEmoji(hint.color)}</span>
+                    </div>
+                    <span className="text-xs font-medium text-gray-500">{hint.badge}</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{hint.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{hint.description}</p>
+                  
+                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <p className="text-sm text-gray-700 font-medium mb-1">Example:</p>
+                    <p className="text-xs text-gray-600">{hint.example}</p>
+                  </div>
+                  
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <p className="text-sm text-gray-700 font-medium mb-1">Tip:</p>
+                    <p className="text-xs text-gray-600">{hint.tip}</p>
+                  </div>
+                  
+                  <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                    <span className={hint.isOfficial ? 'text-green-600' : 'text-yellow-600'}>
+                      {hint.isOfficial ? '✅ Official-style' : '🔄 Smart-generated'}
+                    </span>
+                    <span>Level {hint.level}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Data Source Information */}
+            <div id="data-source" className="bg-white rounded-3xl p-8 border border-gray-200 shadow-2xl">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <Globe className="w-6 h-6 text-blue-600 mr-3" />
+                Data Source
+              </h2>
               
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Hint Quality</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Hints:</span>
-                    <span className="text-gray-900 font-medium">{hintsData.hints.length}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">System Status</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Data Authenticity:</span>
+                      <span className={hintsData.isReal ? 'text-green-600 font-medium' : 'text-yellow-600 font-medium'}>
+                        {hintsData.isReal ? 'Real Data' : 'Local Fallback'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Official Hints:</span>
+                      <span className={hintsData.officialHintsAvailable ? 'text-green-600 font-medium' : 'text-yellow-600 font-medium'}>
+                        {hintsData.officialHintsAvailable ? 'Available' : 'Unavailable'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Source:</span>
+                      <span className="text-gray-900 font-medium">{hintsData.source}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Last Updated:</span>
+                      <span className="text-gray-900 font-medium">{new Date().toLocaleString()}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Official-style:</span>
-                    <span className="text-green-600 font-medium">{hintsData.hints.filter(h => h.isOfficial).length} / {hintsData.hints.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Difficulty:</span>
-                    <span className="text-gray-900 font-medium">{(hintsData.difficulty || 'medium').toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Word Length:</span>
-                    <span className="text-gray-900 font-medium">{hintsData.word.length} letters</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Hint Quality</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Hints:</span>
+                      <span className="text-gray-900 font-medium">{hintsData.hints.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Official-style:</span>
+                      <span className="text-green-600 font-medium">{hintsData.hints.filter(h => h.isOfficial).length} / {hintsData.hints.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Difficulty:</span>
+                      <span className="text-gray-900 font-medium">{(hintsData.difficulty || 'medium').toUpperCase()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Word Length:</span>
+                      <span className="text-gray-900 font-medium">{hintsData.word.length} letters</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -401,6 +477,7 @@ export default function RealHintsPage() {
           </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   )
 } 
