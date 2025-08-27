@@ -8,6 +8,9 @@ export async function GET(request: NextRequest) {
     
     // Initialize article manager to ensure storage is loaded
     await articleManager.initialize()
+
+    // Ensure today's articles exist in this cold start context
+    await articleManager.ensureTodayArticles()
     
     // Get query parameters
     const category = searchParams.get('category')
