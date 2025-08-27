@@ -231,6 +231,66 @@ export class ArticleStorage {
   }
 
   /**
+   * Get all articles for a specific word
+   */
+  public async getArticlesForWord(word: string): Promise<Article[]> {
+    const wordKey = word.toLowerCase()
+    return this.wordArticles.get(wordKey) || []
+  }
+
+  /**
+   * Get article by id
+   */
+  public async getArticleById(id: string): Promise<Article | null> {
+    return this.articles.get(id) || null
+  }
+
+  /**
+   * Get articles by category
+   */
+  public async getArticlesByCategory(category: string): Promise<Article[]> {
+    const all = Array.from(this.articles.values())
+    if (category === 'all') return all
+    return all.filter(a => a.category === category)
+  }
+
+  /**
+   * Text search in title/excerpt/tags
+   */
+  public async searchArticles(query: string): Promise<Article[]> {
+    const q = query.toLowerCase()
+    const all = Array.from(this.articles.values())
+    return all.filter(a =>
+      a.title.toLowerCase().includes(q) ||
+      a.excerpt.toLowerCase().includes(q) ||
+      a.tags.some(t => t.toLowerCase().includes(q))
+    )
+  }
+
+  /**
+   * Counters
+   */
+  public async incrementViewCount(articleId: string): Promise<void> {
+    const a = this.articles.get(articleId)
+    if (a) {
+      a.viewCount = (a.viewCount || 0) + 1
+      a.updatedAt = new Date().toISOString()
+      await this.persistToFileSystem()
+      this.persistToLocalStorage()
+    }
+  }
+
+  public async incrementLikeCount(articleId: string): Promise<void> {
+    const a = this.articles.get(articleId)
+    if (a) {
+      a.likeCount = (a.likeCount || 0) + 1
+      a.updatedAt = new Date().toISOString()
+      await this.persistToFileSystem()
+      this.persistToLocalStorage()
+    }
+  }
+
+  /**
    * Persist to Cloudflare KV (if configured)
    */
   private async persistToCloudflareKV(): Promise<boolean> {
