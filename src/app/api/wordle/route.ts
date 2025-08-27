@@ -38,8 +38,19 @@ export async function GET(request: NextRequest) {
     
     console.log(`Today's Wordle word: ${todayWord} (${wordNumber}) from ${source}`)
     
-    // Get today's articles
-    const todayArticles = await articleManager.getTodayArticles()
+    // Get today's articles; if none, force-generate now to ensure availability
+    let todayArticles = await articleManager.getTodayArticles()
+    if (!todayArticles || todayArticles.length === 0) {
+      console.log('No articles found for today in storage. Force-generating now...')
+      const gen = await articleManager.generateArticlesForWord(
+        todayWord,
+        todayWordResponse.data,
+        true
+      )
+      if (gen.success && gen.articles) {
+        todayArticles = gen.articles
+      }
+    }
     
     // Get real Wordle hints from the service
     const realHintsService = RealWordleHintsService.getInstance()
@@ -71,11 +82,11 @@ export async function GET(request: NextRequest) {
         learningTips: generateLearningTips(todayWord),
         relatedWords: generateRelatedWords(todayWord),
         // Real generated articles
-        articles: todayArticles.length > 0 ? todayArticles : [],
+        articles: todayArticles && todayArticles.length > 0 ? todayArticles : [],
         // Article generation status
         articleGenerationStatus: {
           isGenerating: articleManager.isGeneratingArticles(),
-          totalArticles: todayArticles.length,
+          totalArticles: todayArticles ? todayArticles.length : 0,
           lastUpdated: new Date().toISOString()
         }
       },
