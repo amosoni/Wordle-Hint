@@ -21,6 +21,12 @@ export class ArticleStorage {
   private readonly upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN || ''
   private readonly redisKey = 'wordle:articles:v1'
 
+  // Optional Cloudflare KV REST config
+  private readonly cfAccountId = process.env.CF_ACCOUNT_ID || ''
+  private readonly cfNamespaceId = process.env.CF_KV_NAMESPACE_ID || ''
+  private readonly cfApiToken = process.env.CF_API_TOKEN || ''
+  private readonly cfKvKey = 'wordle:articles:v1'
+
   private constructor(options: ArticleStorageOptions = {}) {
     this.options = {
       maxArticlesPerWord: 5,
@@ -94,10 +100,10 @@ export class ArticleStorage {
     // Update word-article mapping
     this.wordArticles.set(wordKey, trimmed)
     
-    // Persist to external KV if available, else file system
-    if (await this.persistToUpstash()) {
-      console.log('Articles persisted to Upstash KV')
-    } else {
+    // Persist to external KV (Cloudflare preferred, then Upstash), else file system
+    const persisted = await this.persistToCloudflareKV().catch(() => false)
+      || await this.persistToUpstash().catch(() => false)
+    if (!persisted) {
       await this.persistToFileSystem()
     }
     
@@ -108,62 +114,18 @@ export class ArticleStorage {
   }
 
   /**
-   * Get all articles for a specific word
+   * Get all articles sorted by publishedAt desc (optionally paginated)
    */
-  public async getArticlesForWord(word: string): Promise<Article[]> {
-    const wordKey = word.toLowerCase()
-    const articles = this.wordArticles.get(wordKey) || []
-    
-    if (articles.length === 0) {
-      console.log(`No articles found for word: ${word}`)
+  public async getAllArticlesSorted(limit: number = 100, offset: number = 0): Promise<Article[]> {
+    try {
+      const allArticles = Array.from(this.articles.values())
+      const sorted = allArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      if (offset <= 0 && limit >= sorted.length) return sorted
+      return sorted.slice(offset, offset + limit)
+    } catch (error) {
+      console.error('Failed to get all articles sorted:', error)
+      return []
     }
-    
-    return articles
-  }
-
-  /**
-   * Get a specific article by ID
-   */
-  public async getArticleById(id: string): Promise<Article | null> {
-    const article = this.articles.get(id)
-    
-    if (!article) {
-      console.log(`Article not found with ID: ${id}`)
-    }
-    
-    return article || null
-  }
-
-  /**
-   * Get articles by category
-   */
-  public async getArticlesByCategory(category: string): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values())
-    return allArticles.filter(article => article.category === category)
-  }
-
-  /**
-   * Get articles by tag
-   */
-  public async getArticlesByTag(tag: string): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values())
-    return allArticles.filter(article => 
-      article.tags.some(t => t.toLowerCase() === tag.toLowerCase())
-    )
-  }
-
-  /**
-   * Search articles by title, content, or tags
-   */
-  public async searchArticles(query: string): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values())
-    const queryLower = query.toLowerCase()
-    
-    return allArticles.filter(article => 
-      article.title.toLowerCase().includes(queryLower) ||
-      article.excerpt.toLowerCase().includes(queryLower) ||
-      article.tags.some(tag => tag.toLowerCase().includes(queryLower))
-    )
   }
 
   /**
@@ -205,32 +167,6 @@ export class ArticleStorage {
   }
 
   /**
-   * Update article view count
-   */
-  public async incrementViewCount(articleId: string): Promise<void> {
-    const article = this.articles.get(articleId)
-    if (article) {
-      article.viewCount++
-      article.updatedAt = new Date().toISOString()
-      await this.persistToFileSystem()
-      this.persistToLocalStorage()
-    }
-  }
-
-  /**
-   * Update article like count
-   */
-  public async incrementLikeCount(articleId: string): Promise<void> {
-    const article = this.articles.get(articleId)
-    if (article) {
-      article.likeCount++
-      article.updatedAt = new Date().toISOString()
-      await this.persistToFileSystem()
-      this.persistToLocalStorage()
-    }
-  }
-
-  /**
    * Check if articles exist for a word
    */
   public async hasArticlesForWord(word: string): Promise<boolean> {
@@ -265,17 +201,6 @@ export class ArticleStorage {
   }
 
   /**
-   * Clear all articles (useful for testing or reset)
-   */
-  public async clearAllArticles(): Promise<void> {
-    this.articles.clear()
-    this.wordArticles.clear()
-    await this.persistToFileSystem()
-    this.clearLocalStorage()
-    console.log('All articles cleared')
-  }
-
-  /**
    * Get articles for a specific date range
    */
   public async getArticlesByDateRange(startDate: Date, endDate: Date): Promise<Article[]> {
@@ -306,17 +231,56 @@ export class ArticleStorage {
   }
 
   /**
-   * Get all articles sorted by publishedAt desc (optionally paginated)
+   * Persist to Cloudflare KV (if configured)
    */
-  public async getAllArticlesSorted(limit: number = 100, offset: number = 0): Promise<Article[]> {
+  private async persistToCloudflareKV(): Promise<boolean> {
+    if (!this.cfAccountId || !this.cfNamespaceId || !this.cfApiToken) return false
     try {
-      const allArticles = Array.from(this.articles.values())
-      const sorted = allArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-      if (offset <= 0 && limit >= sorted.length) return sorted
-      return sorted.slice(offset, offset + limit)
-    } catch (error) {
-      console.error('Failed to get all articles sorted:', error)
-      return []
+      const storageData = {
+        articles: Array.from(this.articles.entries()),
+        wordArticles: Array.from(this.wordArticles.entries()),
+        timestamp: Date.now()
+      }
+      const url = `https://api.cloudflare.com/client/v4/accounts/${this.cfAccountId}/storage/kv/namespaces/${this.cfNamespaceId}/values/${encodeURIComponent(this.cfKvKey)}`
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${this.cfApiToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(storageData)
+      })
+      return res.ok
+    } catch (e) {
+      console.warn('Failed to persist to CF KV:', e)
+      return false
+    }
+  }
+
+  /**
+   * Load from Cloudflare KV (if configured)
+   */
+  private async loadFromCloudflareKV(): Promise<boolean> {
+    if (!this.cfAccountId || !this.cfNamespaceId || !this.cfApiToken) return false
+    try {
+      const url = `https://api.cloudflare.com/client/v4/accounts/${this.cfAccountId}/storage/kv/namespaces/${this.cfNamespaceId}/values/${encodeURIComponent(this.cfKvKey)}`
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${this.cfApiToken}` }
+      })
+      if (!res.ok) return false
+      const parsed = await res.json() as { articles: [string, Article][], wordArticles: [string, Article[]][], timestamp: number }
+      const now = Date.now()
+      const expiryTime = this.options.cacheExpiryHours! * 60 * 60 * 1000
+      if (now - parsed.timestamp < expiryTime) {
+        this.articles = new Map(parsed.articles)
+        this.wordArticles = new Map(parsed.wordArticles)
+        console.log(`Articles loaded from Cloudflare KV: ${this.articles.size} articles`)
+        return true
+      }
+      return false
+    } catch (e) {
+      console.warn('Failed to load from CF KV:', e)
+      return false
     }
   }
 
@@ -393,7 +357,7 @@ export class ArticleStorage {
   }
 
   /**
-   * Load articles (Upstash → file system → localStorage)
+   * Load articles (CF KV → Upstash → file system → localStorage)
    */
   private async loadFromFileSystem(): Promise<void> {
     try {
@@ -412,7 +376,9 @@ export class ArticleStorage {
           console.log(`Articles loaded from file system: ${this.articles.size} articles`)
         } else {
           console.log('Articles cache expired, clearing...')
-          await this.clearAllArticles()
+          // Clear in-memory maps when cache expired
+          this.articles.clear()
+          this.wordArticles.clear()
         }
       }
     } catch (error) {
@@ -482,13 +448,16 @@ export class ArticleStorage {
   }
 
   /**
-   * Initialize storage (Upstash KV → file system → localStorage)
+   * Initialize storage (Cloudflare KV → Upstash KV → file system → localStorage)
    */
   public async initialize(): Promise<void> {
-    // Try Upstash first for production persistence
-    const loadedFromKV = await this.loadFromUpstash()
+    // Try Cloudflare KV (preferred)
+    const loadedFromCf = await this.loadFromCloudflareKV()
 
-    if (!loadedFromKV) {
+    // Then Upstash
+    const loadedFromUpstash = loadedFromCf ? true : await this.loadFromUpstash()
+
+    if (!loadedFromCf && !loadedFromUpstash) {
       // Fallback to file system (dev/local)
       await this.loadFromFileSystem()
     }
