@@ -28,9 +28,10 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('/api/wordle')
+        // Fetch recent articles from unified articles API (includes webhook-generated posts)
+        const response = await fetch('/api/articles?type=recent&limit=30')
         const data = await response.json()
-        if (data.success && data.data.articles) {
+        if (data.success && data.data?.articles) {
           setArticles(data.data.articles)
         }
       } catch (error) {
