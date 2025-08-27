@@ -159,28 +159,41 @@ export class ArticleStorage {
   }
 
   /**
-   * Get recent articles (last 30 days)
+   * Get recent articles
    */
   public async getRecentArticles(limit: number = 10): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values())
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    
-    return allArticles
-      .filter(article => new Date(article.publishedAt) >= thirtyDaysAgo)
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-      .slice(0, limit)
+    try {
+      const allArticles = Array.from(this.articles.values())
+      
+      // Sort by publishedAt (newest first) and return limited results
+      const sortedArticles = allArticles.sort((a, b) => 
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      )
+      
+      return sortedArticles.slice(0, limit)
+    } catch (error) {
+      console.error('Failed to get recent articles:', error)
+      return []
+    }
   }
 
   /**
-   * Get popular articles by view count
+   * Get popular articles
    */
   public async getPopularArticles(limit: number = 10): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values())
-    
-    return allArticles
-      .sort((a, b) => b.viewCount - a.viewCount)
-      .slice(0, limit)
+    try {
+      const allArticles = Array.from(this.articles.values())
+      
+      // Sort by viewCount (highest first) and return limited results
+      const sortedArticles = allArticles.sort((a, b) => 
+        (b.viewCount || 0) - (a.viewCount || 0)
+      )
+      
+      return sortedArticles.slice(0, limit)
+    } catch (error) {
+      console.error('Failed to get popular articles:', error)
+      return []
+    }
   }
 
   /**
