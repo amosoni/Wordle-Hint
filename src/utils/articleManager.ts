@@ -81,7 +81,8 @@ export class ArticleManager {
    */
   public async generateArticlesForWord(
     word: string,
-    wordData: WordleDailyData
+    wordData: WordleDailyData,
+    force: boolean = false
   ): Promise<ArticleGenerationResult> {
     if (this.isGenerating) {
       return {
@@ -93,16 +94,18 @@ export class ArticleManager {
 
     try {
       this.isGenerating = true
-      console.log(`Starting article generation for word: ${word}`)
+      console.log(`Starting article generation for word: ${word}${force ? ' (forced)' : ''}`)
 
-      // Check if articles already exist
-      const existingArticles = await this.storage.getArticlesForWord(word)
-      if (existingArticles.length > 0) {
-        console.log(`Articles already exist for word: ${word}`)
-        return {
-          success: true,
-          articles: existingArticles,
-          message: 'Articles already exist for this word'
+      // Check if articles already exist (unless forced)
+      if (!force) {
+        const existingArticles = await this.storage.getArticlesForWord(word)
+        if (existingArticles.length > 0) {
+          console.log(`Articles already exist for word: ${word}`)
+          return {
+            success: true,
+            articles: existingArticles,
+            message: 'Articles already exist for this word'
+          }
         }
       }
 
@@ -289,7 +292,7 @@ export class ArticleManager {
       // Note: In a real implementation, you might want to archive instead of delete
       
       // Generate new articles
-      return await this.generateArticlesForWord(word, wordData)
+      return await this.generateArticlesForWord(word, wordData, true) // Pass true for force
       
     } catch (error) {
       console.error(`Failed to force regenerate articles for word ${word}:`, error)

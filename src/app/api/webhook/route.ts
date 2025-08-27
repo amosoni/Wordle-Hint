@@ -36,9 +36,13 @@ export async function POST(req: NextRequest) {
         source: `${source} (Cloudflare Worker)`,
         isReal: true
       }
+      
+      // Force generate new articles regardless of existing ones
+      console.log(`Webhook: Force generating articles for word: ${word}`)
       const result = await articleManager.generateArticlesForWord(
         word,
-        wordData as { word: string; wordNumber: number; date: string; source: string; isReal: boolean }
+        wordData as { word: string; wordNumber: number; date: string; source: string; isReal: boolean },
+        true // Force generation
       )
       return NextResponse.json({ success: result.success, generated: result.articles?.length || 0, message: result.message })
     }
@@ -47,6 +51,7 @@ export async function POST(req: NextRequest) {
     await articleManager.ensureTodayArticles()
     return NextResponse.json({ success: true, message: 'Ensured today articles via fallback' })
   } catch (error) {
+    console.error('Webhook error:', error)
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
   }
 } 
