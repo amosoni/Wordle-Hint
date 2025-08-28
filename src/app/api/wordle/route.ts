@@ -8,6 +8,25 @@ export async function GET(request: NextRequest) {
   try {
     console.log('Starting enhanced API request...')
     
+    // 获取当前日期
+    const currentDate = new Date().toISOString().slice(0, 10)
+    
+    // 使用与real-hints页面相同的单词生成逻辑
+    const getGlobalCurrentWord = (dateStr: string): string => {
+      const dateSeed = parseInt(dateStr.replace(/-/g, ''), 10)
+      const commonWords = [
+        'CRANE', 'STARE', 'SHARE', 'SPARE', 'SCARE', 'SNARE', 'SWARE', 'SLATE', 'STATE', 'SKATE',
+        'BRAVE', 'DREAM', 'FLAME', 'GRACE', 'HAPPY', 'JOLLY', 'KNIFE', 'LIGHT', 'MAGIC', 'NIGHT',
+        'OCEAN', 'PEACE', 'QUICK', 'RADIO', 'SMART', 'TRAIN', 'UNITE', 'VOICE', 'WATER', 'YOUTH'
+      ]
+      const wordIndex = (dateSeed * 7 + 13) % commonWords.length
+      return commonWords[wordIndex]
+    }
+    
+    // 获取当前应该使用的单词
+    const currentWord = getGlobalCurrentWord(currentDate)
+    console.log(`🌐 Global current word: ${currentWord} for date: ${currentDate}`)
+    
     // Check for force refresh parameter
     const { searchParams } = new URL(request.url)
     const forceRefresh = searchParams.get('refresh') === 'true'

@@ -117,9 +117,46 @@ const generateSemanticHint = (word: string): string => {
 const generateLocalWord = (dateStr: string): string => {
   // 使用日期作为种子生成一致的单词
   const dateSeed = parseInt(dateStr.replace(/-/g, ''), 10)
-  const commonWords = ['CRANE', 'STARE', 'SHARE', 'SPARE', 'SCARE', 'SNARE', 'SWARE', 'SLATE', 'STATE', 'SKATE']
-  const wordIndex = dateSeed % commonWords.length
-  return commonWords[wordIndex]
+  
+  // 扩展单词列表，包含更多有意义的单词
+  const commonWords = [
+    'CRANE', 'STARE', 'SHARE', 'SPARE', 'SCARE', 'SNARE', 'SWARE', 'SLATE', 'STATE', 'SKATE',
+    'BRAVE', 'DREAM', 'FLAME', 'GRACE', 'HAPPY', 'JOLLY', 'KNIFE', 'LIGHT', 'MAGIC', 'NIGHT',
+    'OCEAN', 'PEACE', 'QUICK', 'RADIO', 'SMART', 'TRAIN', 'UNITE', 'VOICE', 'WATER', 'YOUTH'
+  ]
+  
+  // 使用更复杂的算法生成索引，确保与blog系统一致
+  const wordIndex = (dateSeed * 7 + 13) % commonWords.length
+  const selectedWord = commonWords[wordIndex]
+  
+  console.log(`🔢 Date: ${dateStr}, Seed: ${dateSeed}, Index: ${wordIndex}, Word: ${selectedWord}`)
+  
+  // 将生成的单词存储到localStorage，供其他页面使用
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('currentWordleWord', selectedWord)
+    localStorage.setItem('currentWordleDate', dateStr)
+  }
+  
+  return selectedWord
+}
+
+// 全局单词获取函数 - 确保整个系统使用同一个单词
+const getGlobalCurrentWord = (): string => {
+  if (typeof window !== 'undefined') {
+    // 优先从localStorage获取
+    const storedWord = localStorage.getItem('currentWordleWord')
+    const storedDate = localStorage.getItem('currentWordleDate')
+    const currentDate = new Date().toISOString().slice(0, 10)
+    
+    if (storedWord && storedDate === currentDate) {
+      console.log(`🌐 Using stored word: ${storedWord}`)
+      return storedWord
+    }
+  }
+  
+  // 如果没有存储的单词或日期不匹配，生成本地单词
+  const currentDate = new Date().toISOString().slice(0, 10)
+  return generateLocalWord(currentDate)
 }
 
 // 为本地单词生成提示的函数
@@ -579,7 +616,7 @@ export default function RealHintsPage() {
   // 生成本地数据的函数
   const generateLocalData = (dateStr: string) => {
     console.log('🏠 Generating local data for date:', dateStr)
-    const localWord = generateLocalWord(dateStr)
+    const localWord = getGlobalCurrentWord() // 使用全局单词获取函数
     const localHints = generateLocalHints(localWord)
     
     const localData: RealHintsData = {
