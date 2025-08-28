@@ -15,6 +15,8 @@ interface Article {
   readingTime: string
   difficulty: string
   qualityScore: number
+  word: string
+  wordNumber: number
   publishedAt: string
 }
 
@@ -44,6 +46,42 @@ export default function BlogPage() {
         const currentDate = new Date().toISOString().slice(0, 10)
         const currentWord = getGlobalCurrentWord(currentDate)
         console.log(`🌐 Blog: Using global current word: ${currentWord} for date: ${currentDate}`)
+        
+        // 生成多天的文章数据（今天、昨天、前天）
+        const generateMultiDayArticles = async () => {
+          const dates = []
+          for (let i = 0; i < 3; i++) {
+            const date = new Date()
+            date.setDate(date.getDate() - i)
+            dates.push(date.toISOString().slice(0, 10))
+          }
+          
+          console.log(`📅 Generating articles for dates: ${dates.join(', ')}`)
+          
+          // 为每天生成文章
+          for (const dateStr of dates) {
+            const wordForDate = getGlobalCurrentWord(dateStr)
+            console.log(`📝 Generating articles for ${dateStr}: ${wordForDate}`)
+            
+            try {
+              await fetch('/api/webhook?token=' + encodeURIComponent(process.env.WEBHOOK_TOKEN || ''), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  word: wordForDate, 
+                  wordNumber: 0, 
+                  date: dateStr, 
+                  source: 'Multi-Day Generation' 
+                })
+              })
+            } catch (webhookError) {
+              console.error(`Blog: Webhook error for ${dateStr}:`, webhookError)
+            }
+          }
+        }
+        
+        // 先尝试生成多天文章
+        await generateMultiDayArticles()
         
         // Fetch all articles (time-ordered) and group by date
         const response = await fetch('/api/articles?type=all&limit=200')
@@ -146,6 +184,39 @@ export default function BlogPage() {
     return matchesSearch && matchesCategory && matchesDifficulty && matchesQuality
   })
 
+  // 格式化日期显示
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString)
+      const today = new Date()
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today'
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday'
+      } else {
+        return date.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })
+      }
+    } catch {
+      return dateString
+    }
+  }
+
+  // 获取Wordle日期信息
+  const getWordleDateInfo = (word: string, wordNumber: number): string => {
+    if (wordNumber > 0) {
+      return `Wordle #${wordNumber}`
+    }
+    return 'Daily Word'
+  }
+
   if (loading) {
     return (
       <>
@@ -231,21 +302,50 @@ export default function BlogPage() {
             </div>
           </div>
 
-          {/* Group by date */}
+          {/* Group by Wordle date */}
           {(() => {
             const groups: Record<string, Article[]> = {}
             filteredArticles.forEach(a => {
-              const day = new Date(a['publishedAt' as keyof Article] as unknown as string).toISOString().slice(0,10)
-              groups[day] = groups[day] || []
-              groups[day].push(a)
+              // 按Wordle日期分组，而不是文章生成日期
+              const wordleDate = a.word && a.wordNumber ? 
+                // 如果有Wordle编号，计算对应的日期
+                (() => {
+                  try {
+                    // Wordle从2021-06-19开始，每天一个编号
+                    const epoch = new Date('2021-06-19')
+                    const targetDate = new Date(epoch)
+                    targetDate.setDate(epoch.getDate() + (a.wordNumber - 1))
+                    return targetDate.toISOString().slice(0, 10)
+                  } catch {
+                    return a.publishedAt.slice(0, 10)
+                  }
+                })() :
+                // 否则使用文章发布日期
+                a.publishedAt.slice(0, 10)
+              
+              groups[wordleDate] = groups[wordleDate] || []
+              groups[wordleDate].push(a)
             })
+            
             const dates = Object.keys(groups).sort((a,b) => a < b ? 1 : -1)
             return dates.map(date => (
               <div key={date} className="mb-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{date}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {formatDate(date)} - {date}
+                </h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {groups[date].map((article) => (
                     <div key={article.slug} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                      {/* 日期和Wordle信息 */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-gray-500 font-medium">
+                          {formatDate(article.publishedAt)}
+                        </span>
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                          {getWordleDateInfo(article.word, article.wordNumber)}
+                        </span>
+                      </div>
+                      
                       <div className="flex items-center space-x-2 mb-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                           {article.category}

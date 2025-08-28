@@ -67,6 +67,10 @@ export class ArticleGenerator {
   ): Promise<Article[]> {
     const articles: Article[] = []
     const now = new Date().toISOString()
+    
+    // 使用Wordle的真实日期，如果没有则使用当前日期
+    const articleDate = wordData.date || new Date().toISOString().slice(0, 10)
+    const publishedAt = new Date(articleDate + 'T00:00:00.000Z').toISOString()
 
     for (const template of this.articleTemplates) {
       const article: Article = {
@@ -82,7 +86,7 @@ export class ArticleGenerator {
         qualityScore: this.calculateQualityScore(word, template.category, '', template.title),
         word: word.toUpperCase(),
         wordNumber: wordData.wordNumber,
-        publishedAt: now,
+        publishedAt: publishedAt,
         updatedAt: now,
         status: 'published',
         seoTitle: this.generateSEOTitle(word, template.category),

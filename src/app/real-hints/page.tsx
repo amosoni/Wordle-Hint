@@ -113,50 +113,29 @@ const generateSemanticHint = (word: string): string => {
   }
 }
 
-// 基于日期生成本地单词的函数
-const generateLocalWord = (dateStr: string): string => {
-  // 使用日期作为种子生成一致的单词
+
+
+// 直接计算单词的函数（用于本地数据生成）
+const calculateLocalWord = (dateStr: string): string => {
   const dateSeed = parseInt(dateStr.replace(/-/g, ''), 10)
   
-  // 扩展单词列表，包含更多有意义的单词
+  // 使用与系统后台完全一致的单词列表和算法
   const commonWords = [
     'CRANE', 'STARE', 'SHARE', 'SPARE', 'SCARE', 'SNARE', 'SWARE', 'SLATE', 'STATE', 'SKATE',
     'BRAVE', 'DREAM', 'FLAME', 'GRACE', 'HAPPY', 'JOLLY', 'KNIFE', 'LIGHT', 'MAGIC', 'NIGHT',
-    'OCEAN', 'PEACE', 'QUICK', 'RADIO', 'SMART', 'TRAIN', 'UNITE', 'VOICE', 'WATER', 'YOUTH'
+    'OCEAN', 'PEACE', 'QUICK', 'RADIO', 'SMART', 'TRAIN', 'UNITE', 'VOICE', 'WATER', 'YOUTH',
+    'ZEBRA', 'ALPHA', 'BETA', 'GAMMA', 'DELTA', 'EPSILON', 'ZETA', 'ETA', 'THETA', 'IOTA',
+    'KAPPA', 'LAMBDA', 'MU', 'NU', 'XI', 'OMICRON', 'PI', 'RHO', 'SIGMA', 'TAU',
+    'UPSILON', 'PHI', 'CHI', 'PSI', 'OMEGA', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY', 'HUNDRED'
   ]
   
-  // 使用更复杂的算法生成索引，确保与blog系统一致
+  // 使用与系统后台完全一致的算法
   const wordIndex = (dateSeed * 7 + 13) % commonWords.length
   const selectedWord = commonWords[wordIndex]
   
-  console.log(`🔢 Date: ${dateStr}, Seed: ${dateSeed}, Index: ${wordIndex}, Word: ${selectedWord}`)
-  
-  // 将生成的单词存储到localStorage，供其他页面使用
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('currentWordleWord', selectedWord)
-    localStorage.setItem('currentWordleDate', dateStr)
-  }
+  console.log(`🔢 calculateLocalWord: date=${dateStr}, seed=${dateSeed}, index=${wordIndex}, word=${selectedWord}`)
   
   return selectedWord
-}
-
-// 全局单词获取函数 - 确保整个系统使用同一个单词
-const getGlobalCurrentWord = (): string => {
-  if (typeof window !== 'undefined') {
-    // 优先从localStorage获取
-    const storedWord = localStorage.getItem('currentWordleWord')
-    const storedDate = localStorage.getItem('currentWordleDate')
-    const currentDate = new Date().toISOString().slice(0, 10)
-    
-    if (storedWord && storedDate === currentDate) {
-      console.log(`🌐 Using stored word: ${storedWord}`)
-      return storedWord
-    }
-  }
-  
-  // 如果没有存储的单词或日期不匹配，生成本地单词
-  const currentDate = new Date().toISOString().slice(0, 10)
-  return generateLocalWord(currentDate)
 }
 
 // 为本地单词生成提示的函数
@@ -573,7 +552,35 @@ export default function RealHintsPage() {
   const [detectedArticleWord, setDetectedArticleWord] = useState<string>('')
 
   useEffect(() => {
-    fetchRealHints()
+    console.log('🚀 useEffect triggered - calling fetchRealHints()')
+    
+    // 强制立即执行API调用
+    const initData = async () => {
+      try {
+        console.log('🎯 Starting API call...')
+        await fetchRealHints()
+      } catch (error) {
+        console.error('❌ fetchRealHints failed:', error)
+        // 如果API调用失败，强制生成本地数据
+        const currentDate = new Date().toISOString().slice(0, 10)
+        console.log('🏠 API failed, generating local data for:', currentDate)
+        generateLocalData(currentDate)
+      }
+    }
+    
+    // 立即执行
+    initData()
+    
+    // 如果2秒后还没有数据，强制生成本地数据
+    const timeout = setTimeout(() => {
+      if (!hintsData) {
+        console.log('⏰ Timeout - forcing local data generation')
+        const currentDate = new Date().toISOString().slice(0, 10)
+        generateLocalData(currentDate)
+      }
+    }, 2000)
+    
+    return () => clearTimeout(timeout)
   }, [])
 
   // 检测页面中的文章单词并自动同步
@@ -616,7 +623,12 @@ export default function RealHintsPage() {
   // 生成本地数据的函数
   const generateLocalData = (dateStr: string) => {
     console.log('🏠 Generating local data for date:', dateStr)
-    const localWord = getGlobalCurrentWord() // 使用全局单词获取函数
+    
+    // 使用新的计算函数
+    const localWord = calculateLocalWord(dateStr)
+    
+    console.log(`🏠 Local word calculation: date=${dateStr}, word=${localWord}`)
+    
     const localHints = generateLocalHints(localWord)
     
     const localData: RealHintsData = {
@@ -635,6 +647,7 @@ export default function RealHintsPage() {
   }
 
   const fetchRealHints = async () => {
+    console.log('🎯 fetchRealHints function called!')
     try {
       setLoading(true)
       setError(null)
@@ -659,9 +672,12 @@ export default function RealHintsPage() {
       const controller = new AbortController()
       const timer = setTimeout(() => controller.abort(), 5000)
       try {
-        console.log('🌐 Requesting Cloudflare Worker for today\'s data...')
         // 添加时间戳和缓存破坏参数，强制获取最新数据
         const timestamp = Date.now()
+        
+        console.log('🌐 Requesting Cloudflare Worker for today\'s data...')
+        console.log('🔗 URL:', `${WORKER_URL}?t=${timestamp}&refresh=true&nocache=1`)
+        
         const resp = await fetch(`${WORKER_URL}?t=${timestamp}&refresh=true&nocache=1`, { 
           signal: controller.signal,
           headers: {
@@ -670,22 +686,26 @@ export default function RealHintsPage() {
             'Expires': '0'
           }
         })
+        
+        console.log('📡 Response status:', resp.status, resp.statusText)
+        console.log('📡 Response headers:', Object.fromEntries(resp.headers.entries()))
+        
         clearTimeout(timer)
         if (resp.ok) {
           const nyt = await resp.json() as Record<string, unknown>
           // Expected fields: solution, id, print_date
           const solution = typeof nyt.solution === 'string' ? nyt.solution : ''
           const wordNumber = typeof nyt.id === 'number' ? nyt.id : Number(nyt.id)
-          // 强制使用当前日期，而不是API返回的可能错误的日期
-          const dateStr = currentDateStr
+          
+          // 使用API返回的真实日期，这是Wordle官方数据
+          const apiDate = typeof nyt.print_date === 'string' ? nyt.print_date : ''
+          const dateStr = apiDate || currentDateStr
+          
+          console.log(`✅ API returned: Word: ${solution}, Date: ${apiDate}, Number: ${wordNumber}`)
           
           // 验证API返回的数据是否合理
-          const apiDate = typeof nyt.print_date === 'string' ? nyt.print_date : ''
-          
-          // 如果API返回未来日期，记录警告
           if (apiDate && apiDate > currentDateStr) {
-            console.warn(`⚠️ API returned future date: ${apiDate}, using current date: ${currentDateStr}`)
-            showToast(`Warning: API returned future date ${apiDate}, using current date instead`)
+            console.warn(`⚠️ API returned future date: ${apiDate}, but this might be correct for different timezones`)
           }
           
           if (solution && solution.length >= 5) {
@@ -1121,6 +1141,35 @@ export default function RealHintsPage() {
                 >
                   <Share2 className="w-4 h-4 mr-2" /> Share
                 </button>
+                        <button
+          onClick={async () => {
+            try {
+              console.log('🧪 Testing API connection...')
+              const resp = await fetch('https://sparkling-cake-35ce.vnvgtktbcx.workers.dev/today')
+              const data = await resp.json()
+              console.log('✅ API test successful:', data)
+              showToast(`API test: ${data.solution} (${data.print_date})`)
+            } catch (err) {
+              console.error('❌ API test failed:', err)
+              showToast('API test failed - check console')
+            }
+          }}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center"
+        >
+          🧪 Test API
+        </button>
+        
+        <button
+          onClick={() => {
+            console.log('🔄 Force refresh clicked')
+            const currentDate = new Date().toISOString().slice(0, 10)
+            console.log('📅 Current date:', currentDate)
+            generateLocalData(currentDate)
+          }}
+          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors flex items-center"
+        >
+          🔄 Force Refresh
+        </button>
                 <a href="#data-source" className="px-4 py-2 bg-white border text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center">
                   <LinkIcon className="w-4 h-4 mr-2" /> Data Source
                 </a>
