@@ -33,21 +33,42 @@ export async function POST(req: NextRequest) {
         word,
         wordNumber: wordNumber || 0,
         date,
-        source: `${source} (Cloudflare Worker)`,
+        source: `${source} (Webhook)`,
         isReal: true
       }
       
+      console.log(`Webhook: Force generating articles for word: ${word} from source: ${source}`)
+      
       // Force generate new articles regardless of existing ones
-      console.log(`Webhook: Force generating articles for word: ${word}`)
       const result = await articleManager.generateArticlesForWord(
         word,
         wordData as { word: string; wordNumber: number; date: string; source: string; isReal: boolean },
         true // Force generation
       )
-      return NextResponse.json({ success: result.success, generated: result.articles?.length || 0, message: result.message })
+      
+      if (result.success) {
+        console.log(`✅ Webhook: Successfully generated ${result.articles?.length || 0} articles for word: ${word}`)
+        return NextResponse.json({ 
+          success: result.success, 
+          generated: result.articles?.length || 0, 
+          message: result.message,
+          word: word,
+          date: date,
+          source: source
+        })
+      } else {
+        console.error(`❌ Webhook: Failed to generate articles for word: ${word}`, result.error)
+        return NextResponse.json({ 
+          success: false, 
+          error: result.error || 'Unknown error occurred',
+          word: word,
+          date: date
+        }, { status: 500 })
+      }
     }
 
     // Fallback: no word provided → ensure today articles (will use server-side API logic)
+    console.log('Webhook: No word provided, ensuring today articles via fallback')
     await articleManager.ensureTodayArticles()
     return NextResponse.json({ success: true, message: 'Ensured today articles via fallback' })
   } catch (error) {

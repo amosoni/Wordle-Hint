@@ -29,6 +29,22 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
+        // 获取当前应该使用的单词（与real-hints页面保持一致）
+        const getGlobalCurrentWord = (dateStr: string): string => {
+          const dateSeed = parseInt(dateStr.replace(/-/g, ''), 10)
+          const commonWords = [
+            'CRANE', 'STARE', 'SHARE', 'SPARE', 'SCARE', 'SNARE', 'SWARE', 'SLATE', 'STATE', 'SKATE',
+            'BRAVE', 'DREAM', 'FLAME', 'GRACE', 'HAPPY', 'JOLLY', 'KNIFE', 'LIGHT', 'MAGIC', 'NIGHT',
+            'OCEAN', 'PEACE', 'QUICK', 'RADIO', 'SMART', 'TRAIN', 'UNITE', 'VOICE', 'WATER', 'YOUTH'
+          ]
+          const wordIndex = (dateSeed * 7 + 13) % commonWords.length
+          return commonWords[wordIndex]
+        }
+        
+        const currentDate = new Date().toISOString().slice(0, 10)
+        const currentWord = getGlobalCurrentWord(currentDate)
+        console.log(`🌐 Blog: Using global current word: ${currentWord} for date: ${currentDate}`)
+        
         // Fetch all articles (time-ordered) and group by date
         const response = await fetch('/api/articles?type=all&limit=200')
         const data = await response.json()
@@ -36,7 +52,44 @@ export default function BlogPage() {
           setArticles(data.data.articles)
         }
 
-        // Ensure today's real word articles exist (compare with Worker)
+        // 检查当前文章是否匹配今天的单词
+        if (Array.isArray(data.data?.articles)) {
+          const latest = data.data.articles[0]
+          const latestWord = typeof latest?.word === 'string' ? latest.word : ''
+          
+          if (currentWord !== latestWord) {
+            console.log(`🔄 Blog: Word mismatch! Current: ${currentWord}, Latest article: ${latestWord}`)
+            console.log(`🔄 Blog: Triggering webhook to generate articles for ${currentWord}`)
+            
+            // 触发webhook生成新文章
+            try {
+              await fetch('/api/webhook?token=' + encodeURIComponent(process.env.WEBHOOK_TOKEN || ''), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  word: currentWord, 
+                  wordNumber: 0, 
+                  date: currentDate, 
+                  source: 'Global Word Sync' 
+                })
+              })
+              
+              // 重新获取文章
+              const re = await fetch('/api/articles?type=all&limit=200')
+              const reData = await re.json()
+              if (reData.success && reData.data?.articles) {
+                setArticles(reData.data.articles)
+                console.log(`✅ Blog: Successfully updated articles for word: ${currentWord}`)
+              }
+            } catch (webhookError) {
+              console.error('Blog: Webhook error:', webhookError)
+            }
+          } else {
+            console.log(`✅ Blog: Articles already match current word: ${currentWord}`)
+          }
+        }
+
+        // 原有的Worker检查逻辑（保留作为备用）
         try {
           const WORKER_URL = 'https://sparkling-cake-35ce.vnvgtktbcx.workers.dev/today'
           const r = await fetch(WORKER_URL)
