@@ -42,40 +42,44 @@ export class RealWordleHintsService {
    * 获取今日的真实Wordle提示
    */
   public async getTodayHints(): Promise<RealWordleData> {
-    const today = new Date().toISOString().split('T')[0]
-    const cacheKey = `hints_${today}`
-
-    // 检查缓存
-    const cached = this.cache.get(cacheKey)
-    if (cached && Date.now() - cached.timestamp < this.cacheExpiryMs) {
-      console.log('📋 返回缓存的真实提示数据')
-      return cached.data
+    try {
+      // console.log('🔍 尝试获取今日真实Wordle提示...')
+      
+      // 尝试从多个API端点获取真实提示
+      const apiEndpoints = [
+        'https://wordle-api.vercel.app/api/today',
+        'https://wordle-api.herokuapp.com/today'
+      ]
+      
+      for (const endpoint of apiEndpoints) {
+        try {
+          // console.log(`📡 尝试从 ${endpoint} 获取真实提示`)
+          
+          const response = await fetch(endpoint, {
+            signal: AbortSignal.timeout(5000) // 5秒超时
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            
+            if (data && data.word) {
+              // console.log('✅ 成功获取真实Wordle提示数据')
+              return this.processApiData(data)
+            }
+          }
+        } catch {
+          // console.log(`❌ 从 ${endpoint} 获取提示失败: ${error}`)
+        }
+      }
+      
+      // 如果所有API都失败，生成智能提示
+      // console.log('⚠️ 无法获取真实提示，生成智能提示')
+      return this.generateSmartHints()
+      
+    } catch (error) {
+      console.error('获取Wordle提示时发生错误:', error)
+      return this.generateSmartHints()
     }
-
-    console.log('🔍 尝试获取今日真实Wordle提示...')
-
-    // 尝试从多个来源获取真实提示
-    const realData = await this.fetchRealHints()
-    
-    if (realData) {
-      this.cache.set(cacheKey, {
-        data: realData,
-        timestamp: Date.now()
-      })
-      console.log('✅ 成功获取真实Wordle提示数据')
-      return realData
-    }
-
-    // 生成智能提示
-    console.log('⚠️ 无法获取真实提示，生成智能提示')
-    const fallbackData = this.generateSmartHints()
-    
-    this.cache.set(cacheKey, {
-      data: fallbackData,
-      timestamp: Date.now()
-    })
-    
-    return fallbackData
   }
 
   /**
@@ -89,7 +93,7 @@ export class RealWordleHintsService {
 
     for (const endpoint of endpoints) {
       try {
-        console.log(`📡 尝试从 ${endpoint} 获取真实提示`)
+                  // console.log(`📡 尝试从 ${endpoint} 获取真实提示`)
         
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 8000)
@@ -110,14 +114,14 @@ export class RealWordleHintsService {
           const realData = this.parseRealHintsData(data, endpoint)
           
           if (realData) {
-            console.log(`✅ 从 ${endpoint} 成功获取真实提示`)
+            // console.log(`✅ 从 ${endpoint} 成功获取真实提示`)
             return realData
           }
         }
-      } catch (error) {
-        console.log(`❌ 从 ${endpoint} 获取提示失败:`, error instanceof Error ? error.message : 'Unknown error')
-        continue
-      }
+              } catch {
+          // console.log(`❌ 从 ${endpoint} 获取提示失败:`, error instanceof Error ? error.message : 'Unknown error')
+          continue
+        }
     }
 
     return null
@@ -270,7 +274,7 @@ export class RealWordleHintsService {
     const wordIndex = dateSeed % fallbackWords.length
     const word = fallbackWords[wordIndex]
 
-    console.log(`📅 生成备用提示，日期种子: ${dateSeed}, 单词: ${word}`)
+    // console.log(`📅 生成备用提示，日期种子: ${dateSeed}, 单词: ${word}`)
 
     return {
       word,
@@ -345,6 +349,33 @@ export class RealWordleHintsService {
     const timeDiff = date.getTime() - epoch.getTime()
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24))
     return Math.max(0, daysDiff)
+  }
+
+  /**
+   * 处理API返回的数据
+   */
+  private processApiData(data: { word?: string; solution?: string; wordNumber?: number; id?: number; date?: string }): RealWordleData {
+    const word = data.word || data.solution || ''
+    const wordNumber = data.wordNumber || data.id || 0
+    const date = data.date || new Date().toISOString().split('T')[0]
+
+    if (!word) {
+      console.error('❌ 无法从API数据中提取单词')
+      return this.generateSmartHints()
+    }
+
+    const hints = this.generateOfficialStyleHints(word)
+    
+    return {
+      word: word.toUpperCase(),
+      wordNumber,
+      date,
+      hints,
+      source: `Real API (Direct)`,
+      isReal: true,
+      difficulty: this.assessDifficulty(word),
+      officialHintsAvailable: true
+    }
   }
 
   /**

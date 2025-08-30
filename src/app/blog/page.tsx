@@ -45,7 +45,7 @@ export default function BlogPage() {
         
         const currentDate = new Date().toISOString().slice(0, 10)
         const currentWord = getGlobalCurrentWord(currentDate)
-        console.log(`🌐 Blog: Using global current word: ${currentWord} for date: ${currentDate}`)
+        // console.log(`🌐 Blog: Using global current word: ${currentWord} for date: ${currentDate}`)
         
         // 生成多天的文章数据（今天、昨天、前天）
         const generateMultiDayArticles = async () => {
@@ -56,7 +56,7 @@ export default function BlogPage() {
             dates.push(date.toISOString().slice(0, 10))
           }
           
-          console.log(`📅 Generating articles for dates: ${dates.join(', ')}`)
+          // console.log(`📅 Generating articles for dates: ${dates.join(', ')}`)
           
           // 为每天生成文章
           for (const dateStr of dates) {
@@ -117,13 +117,13 @@ export default function BlogPage() {
               const reData = await re.json()
               if (reData.success && reData.data?.articles) {
                 setArticles(reData.data.articles)
-                console.log(`✅ Blog: Successfully updated articles for word: ${currentWord}`)
+                // console.log(`✅ Blog: Successfully updated articles for word: ${currentWord}`)
               }
             } catch (webhookError) {
               console.error('Blog: Webhook error:', webhookError)
             }
           } else {
-            console.log(`✅ Blog: Articles already match current word: ${currentWord}`)
+            // console.log(`✅ Blog: Articles already match current word: ${currentWord}`)
           }
         }
 

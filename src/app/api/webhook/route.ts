@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       )
       
       if (result.success) {
-        console.log(`✅ Webhook: Successfully generated ${result.articles?.length || 0} articles for word: ${word}`)
+        // console.log(`✅ Webhook: Successfully generated ${result.articles?.length || 0} articles for word: ${word}`)
         return NextResponse.json({ 
           success: result.success, 
           generated: result.articles?.length || 0, 

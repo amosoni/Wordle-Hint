@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Head from 'next/head'
 import { Lightbulb, Target, CheckCircle, Globe, Users, Clock, TrendingUp, Award, Wifi, Smartphone, Monitor, Tablet, Gamepad2, ArrowRight, X, Info, BookOpenCheck, GraduationCap, BookOpen, Zap } from 'lucide-react'
 // Using global navigation from layout
 import Footer from '@/components/Footer'
@@ -137,12 +136,12 @@ export default function OnlinePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
         {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-xl text-gray-600">Loading online hints...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto"></div>
+            <p className="mt-4 text-xl text-blue-100">Loading online hints...</p>
           </div>
         </main>
         <Footer />
@@ -152,13 +151,13 @@ export default function OnlinePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
         {/* Global navigation from layout */}
         <main className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6 text-center">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-8">
-              <p className="text-red-600 text-xl">Error: {error}</p>
-              <p className="text-red-500 mt-2">Using default hints</p>
+            <div className="bg-red-900/20 border border-red-400/30 rounded-xl p-8">
+              <p className="text-red-300 text-xl">Error: {error}</p>
+              <p className="text-red-200 mt-2">Using default hints</p>
             </div>
           </div>
         </main>
@@ -169,63 +168,92 @@ export default function OnlinePage() {
 
   return (
     <>
-      <Head>
-        <title>Wordle Hints - Online Wordle Hint System | Wordle Hint Pro</title>
-        <meta name="description" content="Get Wordle hints online! Progressive hint system with real-time updates. Access today's Wordle hints from anywhere with cross-device compatibility." />
-        <meta name="keywords" content="online Wordle hints, cross-device Wordle, real-time hints" />
-        <meta name="author" content="Wordle Hint Pro" />
-        <meta name="robots" content="index, follow" />
-        <meta property="og:title" content="Wordle Hints - Online Wordle Hint System" />
-        <meta property="og:description" content="Access Wordle hints online from anywhere! Progressive hint system with cross-device compatibility." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://wordlehint.help/online" />
-        <meta property="og:image" content="/online-og-image.jpg" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Wordle Hints - Online Wordle Hint System" />
-        <meta name="twitter:description" content="Access Wordle hints online from anywhere! Progressive hint system with cross-device compatibility." />
-        <link rel="canonical" href="https://wordlehint.help/online" />
-      </Head>
-      
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
         {/* Global navigation from layout */}
       
-      <main className="pt-28 pb-16">
+      {/* Spoiler Warning Banner */}
+      <div className="bg-gray-800 text-white py-3 px-6 text-center border-b border-gray-700">
+        <div className="flex items-center justify-center space-x-2">
+          <div className="w-5 h-5 bg-blue-500 rounded flex items-center justify-center text-xs font-bold">i</div>
+                          <span className="text-sm font-medium">SPOILERS AHEAD: Slowly reveal today&apos;s Wordle Answer Hint here!</span>
+        </div>
+      </div>
+      
+      <main className="pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-6">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5">
-              Wordle Hints
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-5">
+              Today&apos;s Wordle Hint: Clues to Solve Today&apos;s Puzzle
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Get Wordle hints online! Access today&apos;s Wordle hints from anywhere with our progressive hint system.
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Crack the NYT Wordle Without the Answer
             </p>
           </div>
 
           {/* Hints Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {todayHints.map((hint) => (
-              <div
-                key={hint.level}
-                className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
-                onClick={() => handleCardClick(hint.level)}
-              >
-                <div className={`inline-block p-4 bg-gradient-to-r ${getColorClasses(hint.color)} rounded-xl text-white mb-6`}>
-                  <span className="text-sm font-medium">{hint.badge}</span>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{hint.title}</h3>
-                <p className="text-gray-600 leading-relaxed mb-6">{hint.description}</p>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Hint Level {hint.level}</span>
-                  <div className={`w-3 h-3 rounded-full ${
-                    hint.color === 'blue' ? 'bg-blue-500' :
-                    hint.color === 'purple' ? 'bg-purple-500' :
-                    'bg-green-500'
-                  }`}></div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
+            {/* Hint 1 */}
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-4">*****</div>
+                <h3 className="text-xl font-bold text-white mb-2">Wordle Answer Hint 1</h3>
               </div>
-            ))}
+              
+              <div className="text-center">
+                <p className="text-blue-100 mb-6 text-lg">
+                  {dailyData?.hints?.[0]?.title || "Singular form of the data you seek."}
+                </p>
+                <button 
+                  onClick={() => handleCardClick(1)}
+                  className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Reveal Hint
+                </button>
+              </div>
+            </div>
+
+            {/* Hint 2 */}
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-4">*****</div>
+                <h3 className="text-xl font-bold text-white mb-2">Wordle Answer Hint 2</h3>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-blue-100 mb-6 text-lg">
+                  {dailyData?.hints?.[1]?.title || "Foundational unit of information."}
+                </p>
+                <button 
+                  onClick={() => handleCardClick(2)}
+                  className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  See Group
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Hint 3 - Full Width */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-4">*****</div>
+                <h3 className="text-xl font-bold text-white mb-2">Wordle Answer Hint 3</h3>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-blue-100 mb-6 text-lg">
+                  {dailyData?.hints?.[2]?.title || "The singular point of your quest."}
+                </p>
+                <button 
+                  onClick={() => handleCardClick(3)}
+                  className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Reveal Hint
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Interactive Hint Demo */}
@@ -626,16 +654,16 @@ export default function OnlinePage() {
           </div>
 
           {/* Device Compatibility */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-200 shadow-2xl mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Works on All Your Devices</h2>
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center">Works on All Your Devices</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Smartphone className="w-10 h-10 text-blue-600" />
+                <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Smartphone className="w-10 h-10 text-blue-300" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Mobile Phones</h3>
-                <p className="text-gray-600">Optimized for iOS and Android devices</p>
-                <div className="mt-3 text-sm text-gray-500">
+                <h3 className="text-xl font-bold text-white mb-2">Mobile Phones</h3>
+                <p className="text-blue-100">Optimized for iOS and Android devices</p>
+                <div className="mt-3 text-sm text-blue-200">
                   <p>• Touch-friendly interface</p>
                   <p>• Responsive design</p>
                   <p>• Fast loading</p>
@@ -643,12 +671,12 @@ export default function OnlinePage() {
               </div>
               
               <div className="text-center">
-                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Tablet className="w-10 h-10 text-purple-600" />
+                <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Tablet className="w-10 h-10 text-purple-300" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Tablets</h3>
-                <p className="text-gray-600">Perfect for iPad and Android tablets</p>
-                <div className="mt-3 text-sm text-gray-500">
+                <h3 className="text-xl font-bold text-white mb-2">Tablets</h3>
+                <p className="text-purple-100">Perfect for iPad and Android tablets</p>
+                <div className="mt-3 text-sm text-purple-200">
                   <p>• Large screen optimization</p>
                   <p>• Landscape support</p>
                   <p>• Enhanced readability</p>
@@ -656,12 +684,12 @@ export default function OnlinePage() {
               </div>
               
               <div className="text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Monitor className="w-10 h-10 text-green-600" />
+                <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Monitor className="w-10 h-10 text-green-300" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Desktop</h3>
-                <p className="text-gray-600">Full-featured experience on computers</p>
-                <div className="mt-3 text-sm text-gray-500">
+                <h3 className="text-xl font-bold text-white mb-2">Desktop</h3>
+                <p className="text-green-100">Full-featured experience on computers</p>
+                <div className="mt-3 text-sm text-green-200">
                   <p>• Keyboard shortcuts</p>
                   <p>• Multi-window support</p>
                   <p>• Advanced features</p>
@@ -671,31 +699,31 @@ export default function OnlinePage() {
           </div>
 
           {/* Features */}
-          <div className="bg-white/95 backdrop-blur-md rounded-3xl p-8 border border-gray-200 shadow-2xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Core Online Features</h2>
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center">Core Online Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lightbulb className="w-8 h-8 text-blue-600" />
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lightbulb className="w-8 h-8 text-blue-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Anywhere</h3>
-                <p className="text-gray-600">Get hints on any device, anytime</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Access Anywhere</h3>
+                <p className="text-blue-100">Get hints on any device, anytime</p>
               </div>
               
               <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-purple-600" />
+                <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-8 h-8 text-purple-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Real-time Updates</h3>
-                <p className="text-gray-600">Fresh hints every day</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Real-time Updates</h3>
+                <p className="text-purple-100">Fresh hints every day</p>
               </div>
               
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Progressive Help</h3>
-                <p className="text-gray-600">Choose your hint level</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Progressive Help</h3>
+                <p className="text-blue-100">Choose your hint level</p>
               </div>
             </div>
           </div>
@@ -705,84 +733,101 @@ export default function OnlinePage() {
              {/* Hint Detail Modal */}
        {showModal && selectedCardLevel && (
          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-           <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="bg-gray-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
              {/* Modal Header */}
-             <div className="flex items-center justify-between p-6 border-b border-gray-200">
+             <div className="flex items-center justify-between p-6 border-b border-gray-600">
                <div className="flex items-center space-x-3">
                  <div className={`w-12 h-12 bg-gradient-to-r ${getColorClasses(getSelectedHint()?.color || 'gray')} rounded-xl flex items-center justify-center text-white`}>
                    <span className="text-lg font-bold">{getColorEmoji(getSelectedHint()?.color || 'gray')}</span>
                  </div>
                  <div>
-                   <h2 className="text-2xl font-bold text-gray-900">
+                   <h2 className="text-2xl font-bold text-white">
                      {getSelectedHint()?.title}
                    </h2>
-                   <p className="text-gray-600">{getSelectedHint()?.badge}</p>
+                   <p className="text-gray-300">{getSelectedHint()?.badge}</p>
                  </div>
                </div>
                <button
                  onClick={closeModal}
-                 className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+                 className="w-10 h-10 bg-gray-600 hover:bg-gray-500 rounded-full flex items-center justify-center transition-colors"
                >
-                 <X className="w-5 h-5 text-gray-600" />
+                 <X className="w-5 h-5 text-white" />
                </button>
              </div>
 
              {/* Modal Content */}
              <div className="p-6 space-y-6">
+               {/* Wordle Answer Display */}
+               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 text-center border-2 border-blue-200">
+                 <div className="text-6xl font-bold text-gray-800 mb-4 tracking-wider">
+                   {dailyData?.word || '*****'}
+                 </div>
+                 <p className="text-lg text-gray-600 mb-6">Wordle Answer</p>
+                 <button 
+                   onClick={() => {
+                     // 这里可以添加复制到剪贴板的功能
+                     navigator.clipboard.writeText(dailyData?.word || '');
+                   }}
+                   className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                 >
+                   See Word
+                 </button>
+               </div>
+
                {/* Hint Description */}
-               <div className="bg-gray-50 rounded-xl p-4">
-                 <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                   <Info className="w-5 h-5 text-blue-600 mr-2" />
+               <div className="bg-gray-500/10 rounded-xl p-4">
+                 <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                   <Info className="w-5 h-5 text-blue-300 mr-2" />
                    Description
                  </h3>
-                 <p className="text-gray-700">{getSelectedHint()?.description}</p>
+                 <p className="text-gray-200">{getSelectedHint()?.description}</p>
                </div>
 
                {/* Hint Example */}
                {getSelectedHint()?.example && (
-                 <div className="bg-blue-50 rounded-xl p-4">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                     <BookOpenCheck className="w-5 h-5 text-blue-600 mr-2" />
+                 <div className="bg-blue-500/10 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                     <BookOpenCheck className="w-5 h-5 text-blue-300 mr-2" />
                      Example
                    </h3>
-                   <p className="text-gray-700 font-medium">&ldquo;{getSelectedHint()?.example}&rdquo;</p>
+                   <p className="text-blue-200 font-medium">&ldquo;{getSelectedHint()?.example}&rdquo;</p>
                  </div>
                )}
 
                {/* Learning Tip */}
                {getSelectedHint()?.tip && (
-                 <div className="bg-green-50 rounded-xl p-4">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                     <GraduationCap className="w-5 h-5 text-green-600 mr-2" />
+                 <div className="bg-green-500/10 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                     <GraduationCap className="w-5 h-5 text-green-300 mr-2" />
                      Learning Tip
                    </h3>
-                   <p className="text-gray-700">{getSelectedHint()?.tip}</p>
+                   <p className="text-green-200">{getSelectedHint()?.tip}</p>
                  </div>
                )}
 
                {/* Educational Content */}
                {dailyData?.educationalContent && (
-                 <div className="bg-purple-50 rounded-xl p-4">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                     <BookOpen className="w-5 h-5 text-purple-600 mr-2" />
+                 <div className="bg-purple-500/10 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                     <BookOpen className="w-5 h-5 text-purple-300 mr-2" />
                      Word Learning
                    </h3>
                    <div className="space-y-3">
                      <div>
-                       <span className="font-medium text-gray-700">Origin: </span>
-                       <span className="text-gray-600">{dailyData.educationalContent.wordOrigin}</span>
+                       <span className="font-medium text-white">Origin: </span>
+                       <span className="text-purple-200">{dailyData.educationalContent.wordOrigin}</span>
                      </div>
                      <div>
-                       <span className="font-medium text-gray-700">Fun Fact: </span>
-                       <span className="text-gray-600">{dailyData.educationalContent.funFact}</span>
+                       <span className="font-medium text-white">Fun Fact: </span>
+                       <span className="text-purple-200">{dailyData.educationalContent.funFact}</span>
                      </div>
                      <div>
-                       <span className="font-medium text-gray-700">Pronunciation: </span>
-                       <span className="text-gray-600 font-mono">{dailyData.educationalContent.pronunciation}</span>
+                       <span className="font-medium text-white">Pronunciation: </span>
+                       <span className="text-purple-200 font-mono">{dailyData.educationalContent.pronunciation}</span>
                      </div>
                      <div>
-                       <span className="font-medium text-gray-700">Usage Examples: </span>
-                       <ul className="list-disc list-inside text-gray-600 mt-1">
+                       <span className="font-medium text-white">Usage Examples: </span>
+                       <ul className="list-disc list-inside text-purple-200 mt-1">
                          {dailyData.educationalContent.usageExamples.map((example, index) => (
                            <li key={index} className="text-sm">&ldquo;{example}&rdquo;</li>
                          ))}
@@ -794,16 +839,16 @@ export default function OnlinePage() {
 
                {/* Learning Tips */}
                {dailyData?.learningTips && (
-                 <div className="bg-orange-50 rounded-xl p-4">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                     <Zap className="w-5 h-5 text-orange-600 mr-2" />
+                 <div className="bg-orange-500/10 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                     <Zap className="w-5 h-5 text-orange-300 mr-2" />
                      General Learning Tips
                    </h3>
                    <ul className="space-y-2">
                      {dailyData.learningTips.map((tip, index) => (
                        <li key={index} className="flex items-start space-x-2">
-                         <span className="text-orange-500 mt-1">•</span>
-                         <span className="text-gray-700 text-sm">{tip}</span>
+                         <span className="text-orange-300 mt-1">•</span>
+                         <span className="text-white text-sm">{tip}</span>
                        </li>
                      ))}
                    </ul>
@@ -812,14 +857,14 @@ export default function OnlinePage() {
 
                {/* Related Words */}
                {dailyData?.relatedWords && dailyData.relatedWords.similar.length > 0 && (
-                 <div className="bg-indigo-50 rounded-xl p-4">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                     <Target className="w-5 h-5 text-indigo-600 mr-2" />
+                 <div className="bg-indigo-500/10 rounded-xl p-4">
+                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                     <Target className="w-5 h-5 text-indigo-300 mr-2" />
                      Related Words
                    </h3>
                    <div className="flex flex-wrap gap-2">
                      {dailyData.relatedWords.similar.map((word, index) => (
-                       <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                       <span key={index} className="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-sm font-medium">
                          {word}
                        </span>
                      ))}
@@ -829,8 +874,8 @@ export default function OnlinePage() {
              </div>
 
              {/* Modal Footer */}
-             <div className="flex items-center justify-between p-6 border-t border-gray-200">
-               <div className="text-sm text-gray-500">
+             <div className="flex items-center justify-between p-6 border-t border-gray-600">
+               <div className="text-sm text-gray-300">
                  Use this hint wisely to improve your Wordle skills!
                </div>
                <button
@@ -846,26 +891,26 @@ export default function OnlinePage() {
 
       {/* Learning Challenges Section */}
       {dailyData?.educationalContent?.learningChallenges && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-3xl p-8 border border-yellow-200 shadow-2xl mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Learning Challenges</h2>
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
+          <h2 className="text-3xl font-bold text-white mb-6 text-center">Learning Challenges</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {dailyData.educationalContent.learningChallenges.map((challenge, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    challenge.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                    challenge.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
+                    challenge.difficulty === 'easy' ? 'bg-green-500/20 text-green-300' :
+                    challenge.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                    'bg-red-500/20 text-red-300'
                   }`}>
                     {challenge.difficulty.toUpperCase()}
                   </span>
-                  <span className="text-sm text-gray-500 capitalize">{challenge.type.replace('_', ' ')}</span>
+                  <span className="text-sm text-blue-200 capitalize">{challenge.type.replace('_', ' ')}</span>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{challenge.challenge}</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 font-medium mb-2">Examples:</p>
-                  <ul className="text-gray-700 text-sm">
+                <h3 className="text-lg font-semibold text-white mb-3">{challenge.challenge}</h3>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <p className="text-sm text-blue-200 font-medium mb-2">Examples:</p>
+                  <ul className="text-white text-sm">
                     {challenge.examples.map((example, idx) => (
                       <li key={idx} className="mb-1">• {example}</li>
                     ))}
@@ -879,30 +924,30 @@ export default function OnlinePage() {
 
       {/* Daily Questions Section - SEO Friendly */}
       {dailyData?.educationalContent?.dailyQuestions && (
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-3xl p-8 border border-green-200 shadow-2xl mb-12">
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Daily Learning Questions</h2>
-            <p className="text-lg text-gray-600">Test your knowledge about today&apos;s word with these interactive questions!</p>
+            <h2 className="text-3xl font-bold text-white mb-4">Daily Learning Questions</h2>
+            <p className="text-lg text-blue-100">Test your knowledge about today&apos;s word with these interactive questions!</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {dailyData.educationalContent.dailyQuestions.map((q, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    q.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                    q.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
+                    q.difficulty === 'easy' ? 'bg-green-500/20 text-green-300' :
+                    q.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                    'bg-red-500/20 text-red-300'
                   }`}>
                     {q.difficulty.toUpperCase()}
                   </span>
-                  <span className="text-sm text-gray-500 capitalize">{q.category}</span>
+                  <span className="text-sm text-blue-200 capitalize">{q.category.replace('_', ' ')}</span>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{q.question}</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 font-medium mb-2">Answer:</p>
-                  <p className="text-gray-700">{q.answer}</p>
+                <h3 className="text-lg font-semibold text-white mb-3">{q.question}</h3>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <p className="text-sm text-blue-200 font-medium mb-2">Answer:</p>
+                  <p className="text-white">{q.answer}</p>
                 </div>
               </div>
             ))}
@@ -912,49 +957,49 @@ export default function OnlinePage() {
 
       {/* Word Analysis Section */}
       {dailyData?.educationalContent?.wordAnalysis && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-200 shadow-2xl mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Word Analysis</h2>
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
+          <h2 className="text-3xl font-bold text-white mb-6 text-center">Word Analysis</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl font-bold text-purple-600">{dailyData.educationalContent.wordAnalysis.letterCount}</span>
+              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-purple-300">{dailyData.educationalContent.wordAnalysis.letterCount}</span>
               </div>
-              <p className="text-sm text-gray-600">Letters</p>
+              <p className="text-sm text-purple-200">Letters</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl font-bold text-blue-600">{dailyData.educationalContent.wordAnalysis.vowelCount}</span>
+              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-blue-300">{dailyData.educationalContent.wordAnalysis.vowelCount}</span>
               </div>
-              <p className="text-sm text-gray-600">Vowels</p>
+              <p className="text-sm text-blue-200">Vowels</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl font-bold text-green-600">{dailyData.educationalContent.wordAnalysis.consonantCount}</span>
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-green-300">{dailyData.educationalContent.wordAnalysis.consonantCount}</span>
               </div>
-              <p className="text-sm text-gray-600">Consonants</p>
+              <p className="text-sm text-green-200">Consonants</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl font-bold text-orange-600">{dailyData.educationalContent.wordAnalysis.syllableEstimate}</span>
+              <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold text-orange-300">{dailyData.educationalContent.wordAnalysis.syllableEstimate}</span>
               </div>
-              <p className="text-sm text-gray-600">Syllables</p>
+              <p className="text-sm text-orange-200">Syllables</p>
             </div>
           </div>
           
-          <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Detailed Analysis</h3>
+          <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/20">
+            <h3 className="text-xl font-semibold text-white mb-4">Detailed Analysis</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Letter Pattern:</p>
-                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.letterPattern}</p>
+                <p className="text-sm text-blue-200 mb-1">Letter Pattern:</p>
+                <p className="text-white font-medium">{dailyData.educationalContent.wordAnalysis.letterPattern}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Commonness:</p>
-                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.commonness}</p>
+                <p className="text-sm text-blue-200 mb-1">Commonness:</p>
+                <p className="text-white font-medium">{dailyData.educationalContent.wordAnalysis.commonness}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Unique Letters:</p>
-                <p className="text-gray-900 font-medium">{dailyData.educationalContent.wordAnalysis.uniqueLetters}</p>
+                <p className="text-sm text-blue-200 mb-1">Unique Letters:</p>
+                <p className="text-white font-medium">{dailyData.educationalContent.wordAnalysis.uniqueLetters}</p>
               </div>
             </div>
           </div>

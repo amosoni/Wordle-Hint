@@ -24,6 +24,7 @@ export class ArticleScheduler {
   private isRunning = false
   private lastDailyRun?: Date
   private lastWordleRefresh?: Date
+  private lastCacheCleanup?: Date
 
   private constructor(options: SchedulerOptions = {}) {
     this.options = {
@@ -59,7 +60,7 @@ export class ArticleScheduler {
     }
 
     try {
-      console.log('🚀 Starting enhanced article scheduler...')
+      // console.log('🚀 Starting enhanced article scheduler...')
       
       // Initialize article manager
       await this.articleManager.initialize()
@@ -85,7 +86,7 @@ export class ArticleScheduler {
       }
       
       this.isRunning = true
-      console.log('✅ Enhanced article scheduler started successfully')
+      // console.log('✅ Enhanced article scheduler started successfully')
       
       // Log next scheduled runs
       this.logNextScheduledRuns()
@@ -105,7 +106,7 @@ export class ArticleScheduler {
       return
     }
 
-    console.log('🛑 Stopping enhanced article scheduler...')
+    // console.log('🛑 Stopping enhanced article scheduler...')
     
     // Clear all timers
     if (this.dailyTimer) {
@@ -129,7 +130,7 @@ export class ArticleScheduler {
     }
     
     this.isRunning = false
-    console.log('✅ Enhanced article scheduler stopped')
+    // console.log('✅ Enhanced article scheduler stopped')
   }
 
   /**
@@ -149,7 +150,7 @@ export class ArticleScheduler {
     
     const timeUntilNextRun = nextRun.getTime() - now.getTime()
     
-    console.log(`📅 Next daily article generation scheduled for: ${nextRun.toLocaleString()}`)
+    // console.log(`📅 Next daily article generation scheduled for: ${nextRun.toLocaleString()}`)
     
     this.dailyTimer = setTimeout(async () => {
       await this.generateDailyArticles()
@@ -164,7 +165,7 @@ export class ArticleScheduler {
   private scheduleCacheCleanup(): void {
     const intervalMs = this.options.cacheCleanupInterval! * 60 * 60 * 1000
     
-    console.log(`🧹 Cache cleanup scheduled every ${this.options.cacheCleanupInterval} hours`)
+    // console.log(`🧹 Cache cleanup scheduled every ${this.options.cacheCleanupInterval} hours`)
     
     this.cacheCleanupTimer = setInterval(async () => {
       await this.cleanupCaches()
@@ -177,7 +178,7 @@ export class ArticleScheduler {
   private scheduleWordleCacheRefresh(): void {
     const intervalMs = this.options.wordleCacheRefreshInterval! * 60 * 60 * 1000
     
-    console.log(`🔄 Wordle cache refresh scheduled every ${this.options.wordleCacheRefreshInterval} hours`)
+    // console.log(`🔄 Wordle cache refresh scheduled every ${this.options.wordleCacheRefreshInterval} hours`)
     
     // Run immediately on start
     this.refreshWordleCache()
@@ -191,9 +192,9 @@ export class ArticleScheduler {
    * Schedule health monitoring
    */
   private scheduleHealthMonitoring(): void {
-    const intervalMs = this.options.healthCheckInterval! * 60 * 1000
+    const intervalMs = this.options.healthCheckInterval! * 1000
     
-    console.log(`💓 Health monitoring scheduled every ${this.options.healthCheckInterval} minutes`)
+    // console.log(`💓 Health monitoring scheduled every ${this.options.healthCheckInterval} minutes`)
     
     this.healthCheckTimer = setInterval(async () => {
       await this.performHealthCheck()
@@ -206,17 +207,17 @@ export class ArticleScheduler {
   private async generateDailyArticles(): Promise<void> {
     try {
       this.lastDailyRun = new Date()
-      console.log('🌅 Starting daily article generation...')
-      console.log(`⏰ Time: ${this.lastDailyRun.toLocaleString()}`)
+      // console.log('🌅 Starting daily article generation...')
+      // console.log(`⏰ Time: ${this.lastDailyRun.toLocaleString()}`)
       
       // Clear Wordle cache to ensure fresh data
       this.wordleApi.clearCache()
-      console.log('🗑️ Cleared Wordle cache for fresh daily data')
+      // console.log('🗑️ Cleared Wordle cache for fresh daily data')
       
       // Ensure today's articles exist
       await this.articleManager.ensureTodayArticles()
       
-      console.log('✅ Daily article generation completed successfully')
+      // console.log('✅ Daily article generation completed successfully')
       
       // Log system status
       await this.logSystemStatus()
@@ -232,21 +233,21 @@ export class ArticleScheduler {
   private async refreshWordleCache(): Promise<void> {
     try {
       this.lastWordleRefresh = new Date()
-      console.log('🔄 Refreshing Wordle cache...')
+      // console.log('🔄 Refreshing Wordle cache...')
       
       // Clear expired cache entries
       this.wordleApi.cleanExpiredCache()
       
       // Get cache statistics
-      const stats = this.wordleApi.getCacheStats()
-      console.log(`📊 Wordle cache stats: ${stats.validEntries} valid, ${stats.expiredEntries} expired`)
+      // const stats = this.wordleApi.getCacheStats()
+      // console.log(`📊 Wordle cache stats: ${stats.validEntries} valid, ${stats.expiredEntries} expired`)
       
       // Try to fetch fresh data
       const response = await this.wordleApi.getTodayWord()
       if (response.success) {
-        console.log(`✅ Wordle cache refreshed successfully. Current word: ${response.data?.word}`)
+        // console.log(`✅ Wordle cache refreshed successfully. Current word: ${response.data?.word}`)
       } else {
-        console.log('⚠️ Wordle cache refresh failed, using fallback data')
+        // console.log('⚠️ Wordle cache refresh failed, using fallback data')
       }
       
     } catch (error) {
@@ -259,18 +260,19 @@ export class ArticleScheduler {
    */
   private async cleanupCaches(): Promise<void> {
     try {
-      console.log('🧹 Starting cache cleanup...')
+      this.lastCacheCleanup = new Date()
+      // console.log('🧹 Starting cache cleanup...')
       
-      // Clean article manager caches
-      this.articleManager.cleanExpiredCaches()
-      
-      // Clean Wordle API caches
+      // Clear expired Wordle cache entries
       this.wordleApi.cleanExpiredCache()
       
-      console.log('✅ Cache cleanup completed')
+      // Clear expired article cache entries
+      this.articleManager.cleanExpiredCaches()
+      
+      // console.log('✅ Cache cleanup completed')
       
     } catch (error) {
-      console.error('❌ Failed to cleanup caches:', error)
+      console.error('❌ Cache cleanup failed:', error)
     }
   }
 
@@ -284,7 +286,7 @@ export class ArticleScheduler {
       if (!health.healthy) {
         console.warn('⚠️ Health check issues detected:', health.issues)
       } else {
-        console.log('💓 System health check passed')
+        // console.log('💓 System health check passed')
       }
       
     } catch (error) {
@@ -297,15 +299,15 @@ export class ArticleScheduler {
    */
   private async logSystemStatus(): Promise<void> {
     try {
-      const articleStatus = await this.articleManager.getStatus()
-      const wordleStats = this.wordleApi.getCacheStats()
+      // const articleStatus = await this.articleManager.getStatus()
+      // const wordleStats = this.wordleApi.getCacheStats()
       
-      console.log('📊 System Status:')
-      console.log(`   📚 Articles: ${articleStatus.totalArticles}`)
-      console.log(`   🎯 Today's Word: ${articleStatus.todayWord || 'Unknown'}`)
-      console.log(`   🗂️ Wordle Cache: ${wordleStats.validEntries} valid entries`)
-      console.log(`   ⏰ Last Daily Run: ${this.lastDailyRun?.toLocaleString() || 'Never'}`)
-      console.log(`   🔄 Last Wordle Refresh: ${this.lastWordleRefresh?.toLocaleString() || 'Never'}`)
+      // console.log('📊 System Status:')
+      // console.log(`   📚 Articles: ${articleStatus.totalArticles}`)
+      // console.log(`   🎯 Today's Word: ${articleStatus.todayWord || 'Unknown'}`)
+      // console.log(`   🗂️ Wordle Cache: ${wordleStats.validEntries} valid entries`)
+      // console.log(`   ⏰ Last Daily Run: ${this.lastDailyRun?.toLocaleString() || 'Never'}`)
+      // console.log(`   🔄 Last Wordle Refresh: ${this.lastWordleRefresh?.toLocaleString() || 'Never'}`)
       
     } catch (error) {
       console.error('❌ Failed to log system status:', error)
@@ -325,11 +327,11 @@ export class ArticleScheduler {
       nextDaily.setDate(nextDaily.getDate() + 1)
     }
     
-    console.log('📅 Scheduled Runs:')
-    console.log(`   🌅 Daily Generation: ${nextDaily.toLocaleString()}`)
-    console.log(`   🧹 Cache Cleanup: Every ${this.options.cacheCleanupInterval} hours`)
-    console.log(`   🔄 Wordle Refresh: Every ${this.options.wordleCacheRefreshInterval} hours`)
-    console.log(`   💓 Health Check: Every ${this.options.healthCheckInterval} minutes`)
+    // console.log('📅 Scheduled Runs:')
+    // console.log(`   🌅 Daily Generation: ${nextDaily.toLocaleString()}`)
+    // console.log(`   🧹 Cache Cleanup: Every ${this.options.cacheCleanupInterval} hours`)
+    // console.log(`   🔄 Wordle Refresh: Every ${this.options.wordleCacheRefreshInterval} hours`)
+    // console.log(`   💓 Health Check: Every ${this.options.healthCheckInterval} minutes`)
   }
 
   /**
@@ -338,10 +340,10 @@ export class ArticleScheduler {
   public async triggerManualGeneration(word?: string): Promise<void> {
     try {
       if (word) {
-        console.log(`🔧 Manually triggering article generation for word: ${word}`)
+        // console.log(`🔧 Manually triggering article generation for word: ${word}`)
         await this.articleManager.forceRegenerateArticles(word)
       } else {
-        console.log('🔧 Manually triggering daily article generation')
+        // console.log('🔧 Manually triggering daily article generation')
         await this.generateDailyArticles()
       }
     } catch (error) {
@@ -355,7 +357,7 @@ export class ArticleScheduler {
    */
   public async forceRefreshWordleData(): Promise<void> {
     try {
-      console.log('🔄 Force refreshing Wordle data...')
+      // console.log('🔄 Force refreshing Wordle data...')
       await this.refreshWordleCache()
     } catch (error) {
       console.error('❌ Force refresh failed:', error)

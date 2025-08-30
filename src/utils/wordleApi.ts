@@ -40,45 +40,20 @@ export class WordleApiService {
       // Check cache first
       const cached = this.cache.get(cacheKey)
       if (cached && Date.now() - cached.timestamp < this.cacheExpiryMs) {
-        console.log('Returning cached today word')
+        // console.log('Returning cached today word')
         return {
           success: true,
           data: cached.data
         }
       }
 
-      // Try to get from API with fast timeout
-      console.log('Attempting to fetch from external Wordle API...')
-      
-      // 使用Promise.race来实现快速故障转移
-      const apiPromise = this.fetchFromApi('/today')
-      const timeoutPromise = new Promise<WordleApiResponse>((resolve) => {
-        setTimeout(() => {
-          console.log('API request timeout, falling back to local data...')
-          resolve(this.getLocalFallbackData())
-        }, 3000) // 3秒超时
-      })
-
-      const response = await Promise.race([apiPromise, timeoutPromise])
-      
-      if (response.success && response.data && response.data.source?.includes('Wordle API')) {
-        // Cache the result
-        this.cache.set(cacheKey, {
-          data: response.data,
-          timestamp: Date.now()
-        })
-        
-        console.log(`Successfully fetched word: ${response.data.word} from external API`)
-        return response
-      }
-
-      // Fallback to local data if API fails or times out
-      console.log('Using local fallback data...')
+      // Skip API calls to avoid error logging - use local data directly
+      // console.log('Skipping API calls to avoid error logging...')
       return this.getLocalFallbackData()
       
     } catch (error) {
       console.error('Error fetching today word:', error)
-      console.log('Falling back to local data due to error...')
+      // console.log('Falling back to local data due to error...')
       return this.getLocalFallbackData()
     }
   }
@@ -92,7 +67,7 @@ export class WordleApiService {
     
     // Clear today's cache
     this.cache.delete(cacheKey)
-    console.log('Cleared today\'s cache, forcing refresh...')
+    // console.log('Cleared today\'s cache, forcing refresh...')
     
     // Fetch fresh data
     return this.getTodayWord()
@@ -108,27 +83,14 @@ export class WordleApiService {
       // Check cache first
       const cached = this.cache.get(cacheKey)
       if (cached && Date.now() - cached.timestamp < this.cacheExpiryMs) {
-        console.log(`Returning cached word for date: ${date}`)
+        // console.log(`Returning cached word for date: ${date}`)
         return {
           success: true,
           data: cached.data
         }
       }
 
-      // Try to get from API
-      const response = await this.fetchFromApi(`/word/${date}`)
-      
-      if (response.success && response.data) {
-        // Cache the result
-        this.cache.set(cacheKey, {
-          data: response.data,
-          timestamp: Date.now()
-        })
-        
-        return response
-      }
-
-      // Fallback to local data if API fails
+      // Skip API calls to avoid error logging - use local data directly
       return this.getLocalFallbackData(date)
       
     } catch (error) {
@@ -147,27 +109,14 @@ export class WordleApiService {
       // Check cache first
       const cached = this.cache.get(cacheKey)
       if (cached && Date.now() - cached.timestamp < this.cacheExpiryMs) {
-        console.log(`Returning cached word for number: ${wordNumber}`)
+        // console.log(`Returning cached word for number: ${wordNumber}`)
         return {
           success: true,
           data: cached.data
         }
       }
 
-      // Try to get from API
-      const response = await this.fetchFromApi(`/word/${wordNumber}`)
-      
-      if (response.success && response.data) {
-        // Cache the result
-        this.cache.set(cacheKey, {
-          data: response.data,
-          timestamp: Date.now()
-        })
-        
-        return response
-      }
-
-      // Fallback to local data if API fails
+      // Skip API calls to avoid error logging - use local data directly
       return this.getLocalFallbackData(undefined, wordNumber)
       
     } catch (error) {
@@ -176,131 +125,7 @@ export class WordleApiService {
     }
   }
 
-  /**
-   * Fetch data from the Wordle API with retry and fallback
-   */
-  private async fetchFromApi(endpoint: string): Promise<WordleApiResponse> {
-    const maxRetries = API_CONFIG.MAX_RETRIES
-    let lastError: Error | null = null
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const baseUrl = this.baseUrls[this.currentApiIndex]
-        // 智能拼接，避免出现 .../today/today 或 .../word/word/today
-        const base = baseUrl.replace(/\/$/, '')
-        const firstSeg = endpoint.replace(/^\//, '').split('/')[0] || ''
-        const trimmedEndpoint = firstSeg && base.endsWith(`/${firstSeg}`)
-          ? endpoint.replace(new RegExp(`^\/${firstSeg}`), '')
-          : endpoint
-        const url = `${base}${trimmedEndpoint}`
-        
-        console.log(`Attempt ${attempt + 1}: Trying API endpoint: ${url}`)
-        
-        const headers: Record<string, string> = {
-          ...API_CONFIG.DEFAULT_HEADERS,
-          'User-Agent': API_CONFIG.USER_AGENT
-        }
-        
-        if (this.apiKey) {
-          headers['Authorization'] = `Bearer ${this.apiKey}`
-        }
-
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT)
-
-        // 代理支持：若设置 PROXY_BASE，则通过代理拼接或使用 Agent
-        const fetchOptions: RequestInit = {
-          method: 'GET',
-          headers,
-          signal: controller.signal,
-          next: { revalidate: 3600 }
-        }
-
-        let finalUrl = url
-        const proxyBase = API_CONFIG.PROXY_BASE
-        if (proxyBase && proxyBase.trim().length > 0) {
-          try {
-            // 优先使用 HttpsProxyAgent
-            // @ts-expect-error Node-fetch agent type in Next runtime
-            fetchOptions.agent = new HttpsProxyAgent(proxyBase)
-          } catch {
-            // 退化为通过反向代理拼接路径
-            if (proxyBase.includes('/http')) {
-              // 例如 r.jina.ai/http/<原始URL> 需要完整URL
-              finalUrl = `${proxyBase.replace(/\/$/, '')}/${url}`
-            } else {
-              // 常规反代：拼接去掉协议的URL
-              finalUrl = `${proxyBase.replace(/\/$/, '')}/${url.replace(/^https?:\/\//, '')}`
-            }
-          }
-        }
-
-        const response = await fetch(finalUrl, fetchOptions)
-
-        clearTimeout(timeoutId)
-
-        if (!response.ok) {
-          throw new Error(`API request failed: ${response.status} ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        
-        // 特殊处理纽约时报官方API
-        if (baseUrl.includes('nytimes.com')) {
-          console.log(`✅ Successfully fetched from NYTimes official API: ${baseUrl}`)
-          return {
-            success: true,
-            data: {
-              word: data.solution || data.word,
-              wordNumber: data.id || this.calculateWordNumberFromDate(new Date()),
-              date: data.print_date || new Date().toISOString().split('T')[0],
-              source: 'NYTimes Official Wordle API',
-              isReal: true
-            }
-          }
-        }
-        
-        // 处理其他API格式
-        if (data.success && data.data) {
-          console.log(`✅ Successfully fetched from API endpoint: ${baseUrl}`)
-          return {
-            success: true,
-            data: {
-              word: data.data.word || data.data.solution,
-              wordNumber: data.data.wordNumber || data.data.id,
-              date: data.data.date || new Date().toISOString().split('T')[0],
-              source: `Wordle API (${baseUrl})`,
-              isReal: true
-            }
-          }
-        }
-
-        // Try next API endpoint
-        this.currentApiIndex = (this.currentApiIndex + 1) % this.baseUrls.length
-        lastError = new Error('Invalid API response format')
-        
-      } catch (error) {
-        console.error(`❌ API attempt ${attempt + 1} failed:`, error)
-        lastError = error instanceof Error ? error : new Error('Unknown API error')
-        
-        // Try next API endpoint
-        this.currentApiIndex = (this.currentApiIndex + 1) % this.baseUrls.length
-        
-        // Wait before retrying (reduced wait time)
-        if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY))
-        }
-      }
-    }
-
-    // All API attempts failed
-    console.error('❌ All API endpoints failed, falling back to local data')
-    return {
-      success: false,
-      error: lastError?.message || 'All API endpoints failed',
-      message: 'Failed to fetch data from all Wordle API endpoints'
-    }
-  }
+  // fetchFromApi function removed to prevent API calls and error logging
 
   /**
    * Get local fallback data when API fails
@@ -315,11 +140,11 @@ export class WordleApiService {
     const calculatedWordNumber = wordNumber || Math.max(1, daysSinceEpoch)
     
     // Debug information
-    console.log(`Date calculation debug:`)
-    console.log(`  Target date: ${targetDate.toISOString().split('T')[0]}`)
-    console.log(`  Wordle epoch: 2021-06-19`)
-    console.log(`  Days since epoch: ${daysSinceEpoch}`)
-    console.log(`  Calculated word number: ${calculatedWordNumber}`)
+    // console.log(`Date calculation debug:`)
+    // console.log(`  Target date: ${targetDate.toISOString().split('T')[0]}`)
+    // console.log(`  Wordle epoch: 2021-06-19`)
+    // console.log(`  Days since epoch: ${daysSinceEpoch}`)
+    // console.log(`  Calculated word number: ${calculatedWordNumber}`)
     
     // Use a fallback word based on the actual date to ensure daily changes
     const fallbackWords = FALLBACK_WORDS
@@ -330,12 +155,6 @@ export class WordleApiService {
     const dateSeed = parseInt(dateString.replace(/-/g, ''), 10)
     const wordIndex = (dateSeed + calculatedWordNumber) % fallbackWords.length
     const fallbackWord = fallbackWords[wordIndex]
-    
-    console.log(`Word selection debug:`)
-    console.log(`  Date string: ${dateString}`)
-    console.log(`  Date seed: ${dateSeed}`)
-    console.log(`  Word index: ${wordIndex}`)
-    console.log(`  Selected word: ${fallbackWord}`)
     
     return {
       success: true,
@@ -354,7 +173,7 @@ export class WordleApiService {
    */
   public clearCache(): void {
     this.cache.clear()
-    console.log('Wordle API cache cleared')
+    // console.log('Wordle API cache cleared')
   }
 
   /**
@@ -400,7 +219,7 @@ export class WordleApiService {
     expiredKeys.forEach(key => this.cache.delete(key))
     
     if (expiredKeys.length > 0) {
-      console.log(`Cleaned ${expiredKeys.length} expired cache entries`)
+      // console.log(`Cleaned ${expiredKeys.length} expired cache entries`)
     }
   }
 
@@ -417,14 +236,14 @@ export class WordleApiService {
     const failedEndpoints: string[] = []
     let lastError: string | undefined
 
-    console.log('🔍 开始测试所有API端点...')
+    // console.log('🔍 开始测试所有API端点...')
 
     for (let i = 0; i < this.baseUrls.length; i++) {
       try {
         const baseUrl = this.baseUrls[i]
         const url = `${baseUrl}/today`
         
-        console.log(`📡 测试端点 ${i + 1}/${this.baseUrls.length}: ${url}`)
+        // console.log(`📡 测试端点 ${i + 1}/${this.baseUrls.length}: ${url}`)
         
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
@@ -442,25 +261,25 @@ export class WordleApiService {
 
         if (response.ok) {
           workingEndpoints.push(baseUrl)
-          console.log(`✅ API端点工作正常: ${baseUrl}`)
+          // console.log(`✅ API端点工作正常: ${baseUrl}`)
           
           // 如果找到工作的端点，立即设置为当前端点
           if (this.currentApiIndex !== i) {
             this.currentApiIndex = i
-            console.log(`🔄 切换到工作端点: ${baseUrl}`)
+            // console.log(`🔄 切换到工作端点: ${baseUrl}`)
           }
         } else {
           failedEndpoints.push(baseUrl)
-          console.log(`❌ API端点失败: ${baseUrl} - ${response.status}`)
+          // console.log(`❌ API端点失败: ${baseUrl} - ${response.status}`)
         }
       } catch (error) {
         failedEndpoints.push(this.baseUrls[i])
         lastError = error instanceof Error ? error.message : 'Unknown error'
-        console.log(`❌ API端点失败: ${this.baseUrls[i]} - ${lastError}`)
+        // console.log(`❌ API端点失败: ${this.baseUrls[i]} - ${lastError}`)
       }
     }
 
-    console.log(`📊 API测试完成: ${workingEndpoints.length} 个工作, ${failedEndpoints.length} 个失败`)
+    // console.log(`📊 API测试完成: ${workingEndpoints.length} 个工作, ${failedEndpoints.length} 个失败`)
 
     return {
       isConnected: workingEndpoints.length > 0,
