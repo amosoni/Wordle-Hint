@@ -890,11 +890,11 @@ export default function OnlinePage() {
        )}
 
       {/* Learning Challenges Section */}
-      {dailyData?.educationalContent?.learningChallenges && (
+      {dailyData?.educationalContent?.learningChallenges && dailyData.educationalContent.learningChallenges.length > 0 && (
         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
           <h2 className="text-3xl font-bold text-white mb-6 text-center">Learning Challenges</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dailyData.educationalContent.learningChallenges.map((challenge, index) => (
+            {dailyData.educationalContent.learningChallenges.filter(challenge => challenge && challenge.challenge && challenge.difficulty && challenge.type).map((challenge, index) => (
               <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -902,18 +902,18 @@ export default function OnlinePage() {
                     challenge.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
                     'bg-red-500/20 text-red-300'
                   }`}>
-                    {challenge.difficulty.toUpperCase()}
+                    {challenge.difficulty?.toUpperCase() || 'UNKNOWN'}
                   </span>
-                  <span className="text-sm text-blue-200 capitalize">{challenge.type.replace('_', ' ')}</span>
+                  <span className="text-sm text-blue-200 capitalize">{challenge.type?.replace('_', ' ') || 'General'}</span>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-white mb-3">{challenge.challenge}</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">{challenge.challenge || 'Challenge not available'}</h3>
                 <div className="bg-white/10 rounded-lg p-4">
                   <p className="text-sm text-blue-200 font-medium mb-2">Examples:</p>
                   <ul className="text-white text-sm">
-                    {challenge.examples.map((example, idx) => (
+                    {challenge.examples?.filter(example => example).map((example, idx) => (
                       <li key={idx} className="mb-1">• {example}</li>
-                    ))}
+                    )) || <li className="text-gray-400">No examples available</li>}
                   </ul>
                 </div>
               </div>
@@ -923,7 +923,7 @@ export default function OnlinePage() {
       )}
 
       {/* Daily Questions Section - SEO Friendly */}
-      {dailyData?.educationalContent?.dailyQuestions && (
+      {dailyData?.educationalContent?.dailyQuestions && dailyData.educationalContent.dailyQuestions.length > 0 && (
         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-4">Daily Learning Questions</h2>
@@ -931,7 +931,7 @@ export default function OnlinePage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {dailyData.educationalContent.dailyQuestions.map((q, index) => (
+            {dailyData.educationalContent.dailyQuestions.filter(q => q && q.difficulty && q.category && q.question && q.answer).map((q, index) => (
               <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/20">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -939,15 +939,15 @@ export default function OnlinePage() {
                     q.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
                     'bg-red-500/20 text-red-300'
                   }`}>
-                    {q.difficulty.toUpperCase()}
+                    {q.difficulty?.toUpperCase() || 'UNKNOWN'}
                   </span>
-                  <span className="text-sm text-blue-200 capitalize">{q.category.replace('_', ' ')}</span>
+                  <span className="text-sm text-blue-200 capitalize">{q.category?.replace('_', ' ') || 'General'}</span>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-white mb-3">{q.question}</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">{q.question || 'Question not available'}</h3>
                 <div className="bg-white/10 rounded-lg p-4">
                   <p className="text-sm text-blue-200 font-medium mb-2">Answer:</p>
-                  <p className="text-white">{q.answer}</p>
+                  <p className="text-white">{q.answer || 'Answer not available'}</p>
                 </div>
               </div>
             ))}
@@ -956,7 +956,7 @@ export default function OnlinePage() {
       )}
 
       {/* Word Analysis Section */}
-      {dailyData?.educationalContent?.wordAnalysis && (
+      {dailyData?.educationalContent?.wordAnalysis && dailyData.educationalContent.wordAnalysis.letterCount && (
         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-12">
           <h2 className="text-3xl font-bold text-white mb-6 text-center">Word Analysis</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
