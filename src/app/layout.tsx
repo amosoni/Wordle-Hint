@@ -181,9 +181,22 @@ export default function RootLayout({
                   <Link href="/" className="text-gray-700 hover:text-gray-900">
                     Home
                   </Link>
-                  <Link href="/real-hints" className="text-gray-700 hover:text-gray-900">
-                    Today&apos;s Hints
-                  </Link>
+                  <div className="relative group">
+                    <button className="text-gray-700 hover:text-gray-900 flex items-center">
+                      Today&apos;s Hints
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      <Link href="/real-hints" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Wordle Hints
+                      </Link>
+                      <Link href="/connections" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        NYT Connections
+                      </Link>
+                    </div>
+                  </div>
                   <Link href="/game" className="text-gray-700 hover:text-gray-900">
                     Play Wordle
                   </Link>
