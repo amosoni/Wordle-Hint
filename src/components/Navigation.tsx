@@ -1,14 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import { Menu, X, Lightbulb, Users } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Menu, X, Lightbulb, Users, ChevronDown } from 'lucide-react'
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isHintsDropdownOpen, setIsHintsDropdownOpen] = useState(false)
   const [userCount] = useState(2847)
   const [hintCount] = useState(15392)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+  const toggleHintsDropdown = () => setIsHintsDropdownOpen(!isHintsDropdownOpen)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsHintsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-lg">
@@ -30,9 +47,43 @@ export default function Navigation() {
             <a href="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Home
             </a>
-            <a href="/real-hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-              Today&apos;s Hints
-            </a>
+            
+            {/* Today's Hints Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={toggleHintsDropdown}
+                className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+              >
+                <span>Today&apos;s Hints</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              
+              {isHintsDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <a
+                    href="/real-hints"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => setIsHintsDropdownOpen(false)}
+                  >
+                    Wordle Hints
+                  </a>
+                  <a
+                    href="/connections"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => setIsHintsDropdownOpen(false)}
+                  >
+                    NYT Connections
+                  </a>
+                  <a
+                    href="/strands"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => setIsHintsDropdownOpen(false)}
+                  >
+                    NYT Strands 🎯
+                  </a>
+                </div>
+              )}
+            </div>
             
             <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
               Play Wordle
@@ -76,9 +127,53 @@ export default function Navigation() {
               <a href="/" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Home
               </a>
-              <a href="/real-hints" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
-                Today&apos;s Hints
-              </a>
+              
+              {/* Mobile Today's Hints Dropdown */}
+              <div>
+                <button
+                  onClick={toggleHintsDropdown}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                >
+                  <span>Today&apos;s Hints</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                {isHintsDropdownOpen && (
+                  <div className="ml-4 mt-2 space-y-2">
+                    <a
+                      href="/real-hints"
+                      className="block text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200"
+                      onClick={() => {
+                        setIsHintsDropdownOpen(false)
+                        setIsMenuOpen(false)
+                      }}
+                    >
+                      Wordle Hints
+                    </a>
+                    <a
+                      href="/connections"
+                      className="block text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200"
+                      onClick={() => {
+                        setIsHintsDropdownOpen(false)
+                        setIsMenuOpen(false)
+                      }}
+                    >
+                      NYT Connections
+                    </a>
+                    <a
+                      href="/strands"
+                      className="block text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200"
+                      onClick={() => {
+                        setIsHintsDropdownOpen(false)
+                        setIsMenuOpen(false)
+                      }}
+                    >
+                      NYT Strands 🎯
+                    </a>
+                  </div>
+                )}
+              </div>
+              
               <a href="/game" className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">
                 Play Wordle
               </a>
@@ -109,4 +204,4 @@ export default function Navigation() {
       </div>
     </nav>
   )
-} 
+}

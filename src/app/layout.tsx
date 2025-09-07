@@ -195,6 +195,9 @@ export default function RootLayout({
                       <Link href="/connections" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         NYT Connections
                       </Link>
+                      <Link href="/strands" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        NYT Strands 🎯
+                      </Link>
                     </div>
                   </div>
                   <Link href="/game" className="text-gray-700 hover:text-gray-900">

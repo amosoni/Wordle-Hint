@@ -18,6 +18,9 @@ interface Article {
   word: string
   wordNumber: number
   publishedAt: string
+  type?: 'wordle' | 'strands'
+  theme?: string
+  spangram?: string
 }
 
 export default function BlogPage() {
@@ -82,6 +85,19 @@ export default function BlogPage() {
         
         // 先尝试生成多天文章
         await generateMultiDayArticles()
+        
+        // 生成Strands文章
+        try {
+          const strandsResponse = await fetch('/api/blog/generate', {
+            method: 'GET'
+          })
+          const strandsData = await strandsResponse.json()
+          if (strandsData.success && strandsData.data?.blogPost) {
+            console.log("✅ Generated Strands blog post:", strandsData.data.blogPost.title)
+          }
+        } catch (strandsError) {
+          console.log("Strands blog generation failed:", strandsError)
+        }
         
         // Fetch all articles (time-ordered) and group by date
         const response = await fetch('/api/articles?type=all&limit=200')

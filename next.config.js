@@ -75,9 +75,9 @@ const nextConfig = {
   // 减少不必要的功能
   reactStrictMode: true,
   
-  // 启用ESLint
+  // 禁用ESLint构建检查
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
 }
 

@@ -20,6 +20,9 @@ export interface Article {
   author?: string
   viewCount: number
   likeCount: number
+  type?: 'wordle' | 'strands'
+  theme?: string
+  spangram?: string
 }
 
 export interface ArticleGenerationRequest {
